@@ -163,7 +163,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="common\string_helper.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="view\BlockTextView.cpp" />
+    <ClCompile Include="view\block_view.cpp" />
+    <ClCompile Include="view\RootFrame.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common\string_helper.h" />
+    <ClInclude Include="view\BlockTextView.h" />
+    <ClInclude Include="view\block_view.h" />
+    <ClInclude Include="view\message\mouse_helper.h" />
+    <ClInclude Include="view\RootFrame.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

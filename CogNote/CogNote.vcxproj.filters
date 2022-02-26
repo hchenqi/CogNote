@@ -18,5 +18,34 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="view\block_view.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="view\RootFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="view\BlockTextView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\string_helper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="view\block_view.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="view\RootFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="view\BlockTextView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="view\message\mouse_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\string_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
