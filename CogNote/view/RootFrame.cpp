@@ -1,6 +1,6 @@
 #include "RootFrame.h"
 
-#include "BlockTextView.h"
+#include "BlockPairView.h"
 
 #include "WndDesign/message/ime.h"
 
@@ -22,10 +22,9 @@ MouseHelper mouse_helper;
 END_NAMESPACE(Anonymous)
 
 
-RootFrame::RootFrame() : ScrollFrame(new BlockTextView(L"test")) {
+RootFrame::RootFrame() : ScrollFrame(new BlockPairView(*this)) {
 	cursor = Cursor::Text;
 	ime.Enable(*this);
-	GetChild().root = this;
 }
 
 BlockView& RootFrame::GetChild() { return static_cast<BlockView&>(*child); }
@@ -59,7 +58,7 @@ void RootFrame::ClearSelection() {
 }
 
 void RootFrame::BeginSelect() {
-	caret_focus->BeginSelect(*caret_focus);
+	caret_focus->BeginSelect();
 }
 
 void RootFrame::DoSelect(Point point) {
@@ -67,7 +66,7 @@ void RootFrame::DoSelect(Point point) {
 }
 
 void RootFrame::FinishSelect() {
-	selection_focus->FinishSelect();
+	if (selection_focus != nullptr) { selection_focus->FinishSelect(); }
 }
 
 void RootFrame::SelectMore() {
@@ -93,7 +92,7 @@ void RootFrame::CancelDragDrop() {
 }
 
 void RootFrame::FinishDragDrop() {
-	if (drag_drop_focus) { drag_drop_focus->FinishDragDrop(*selection_focus); drag_drop_focus = nullptr; }
+	if (drag_drop_focus) { drag_drop_focus->FinishDragDrop(*selection_focus); CancelDragDrop(); }
 }
 
 bool RootFrame::IsCtrlDown() const { return is_ctrl_down; }
@@ -150,6 +149,8 @@ void RootFrame::OnKeyMsg(KeyMsg msg) {
 
 		case Key::Ctrl: is_ctrl_down = true; break;
 		case Key::Shift: is_shift_down = true; break;
+
+		case CharKey('A'): if (IsCtrlDown()) { SelectMore(); } break;
 		}
 		break;
 	case KeyMsg::KeyUp:

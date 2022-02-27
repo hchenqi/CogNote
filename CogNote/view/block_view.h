@@ -12,12 +12,19 @@ class BlockView : public WndObject {
 private:
 	friend class RootFrame;
 
+public:
+	BlockView(RootFrame& root) : root(root), parent(nullptr) {}
+	BlockView(BlockView& parent) : root(parent.root), parent(&parent) {}
+
 	// context
 private:
-	ref_ptr<RootFrame> root = nullptr;
-	ref_ptr<BlockView> parent = nullptr;
-private:
+	RootFrame& root;
+	ref_ptr<BlockView> parent;
+protected:
 	bool IsRoot() const { return parent == nullptr; }
+	BlockView& GetParent() { if (IsRoot()) { throw std::invalid_argument("window is a root view"); } return *parent; }
+protected:
+	void SetChildParent(BlockView& child) { child.parent = this; }
 
 	// data
 private:
@@ -36,17 +43,19 @@ private:
 protected:
 	bool HasSelectionFocus() const;
 	void SetSelectionFocus();
+private:
+	void BeginSelect() { BeginSelect(*this); BeginSelectSelf(); }
+	void BeginSelectSelf() { if (!IsRoot()) { parent->BeginSelect(*this); parent->BeginSelectSelf(); } }
 protected:
-	void BeginSelect() { if (!IsRoot()) { parent->BeginSelect(*this); } }
 	void DoChildSelect(BlockView& child, Point point) { child.DoSelect(point); };
-	void SelectSelf() { if (!IsRoot()) { parent->BeginSelect(*this); } }
+	void SelectSelf() { if (!IsRoot()) { parent->SelectChild(*this); } }
 private:
 	virtual bool HitTestSelection(Point point) { return false; }
 	virtual void BeginSelect(BlockView& child) {}
 	virtual void DoSelect(Point point) {}
 	virtual void FinishSelect() {}
 	virtual void SelectChild(BlockView& child) {}
-	virtual void SelectMore() { return SelectSelf(); }
+	virtual void SelectMore() { SelectSelf(); }
 	virtual void ClearSelection() {}
 
 	// drag and drop

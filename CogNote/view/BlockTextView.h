@@ -8,11 +8,16 @@
 
 BEGIN_NAMESPACE(WndDesign)
 
+class BlockPairView;
+
 
 class BlockTextView : public BlockView, public LayoutType<Assigned, Auto> {
 public:
-	BlockTextView(std::wstring text);
-	~BlockTextView() {}
+	BlockTextView(BlockView& parent, std::wstring text);
+
+	// parent
+private:
+	BlockPairView& GetParent();
 
 	// text
 private:
@@ -51,6 +56,7 @@ private:
 	void RedrawCaretRegion();
 private:
 	void SetCaret(const HitTestInfo& info);
+public:
 	void SetCaret(size_t text_position);
 private:
 	virtual void SetCaret(Point point) override;
@@ -83,7 +89,7 @@ private:
 	void Insert(std::wstring str);
 	void Delete(bool is_backspace);
 private:
-	void OnEnter();
+	void Split();
 	void OnImeBegin();
 	void OnImeString();
 	void OnImeEnd();
