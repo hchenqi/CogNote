@@ -88,6 +88,7 @@ private:
 	void Insert(wchar ch);
 	void Insert(std::wstring str);
 	void Delete(bool is_backspace);
+	void Indent();
 private:
 	void Split();
 	void OnImeBegin();

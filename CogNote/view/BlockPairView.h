@@ -90,6 +90,7 @@ public:
 	void MergeWith(BlockPairView& pair_view);
 	void MergeBeforeSelf();
 	void MergeAfterSelf();
+	void IndentSelf();
 };
 
 

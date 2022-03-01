@@ -50,11 +50,11 @@ void BlockListView::InsertChild(size_t index, child_ptr child) {
 void BlockListView::InsertChild(size_t index, std::vector<child_ptr> children) {
 	if (index > child_list.size()) { index = child_list.size(); }
 	auto it = child_list.insert(child_list.begin() + index, std::make_move_iterator(children.begin()), std::make_move_iterator(children.end()));
-	for (auto it_end = it + children.size(); it != it_end; ++it) {
-		RegisterChild(it->child);
+	for (auto it_end = it + children.size(); it != it_end; ++it, ++index) {
+		RegisterChild(it->child); SetChildIndex(it->child, index);
 		it->length = UpdateChildSizeRef(it->child, Size(size.width, length_min)).height;
 	}
-	UpdateIndex(index); UpdateLayout(index);
+	UpdateIndex(index); UpdateLayout(index - children.size());
 }
 
 void BlockListView::EraseChild(size_t begin, size_t count) {
@@ -288,6 +288,16 @@ void BlockListView::Indent() {
 	} else {
 		if (selection_range_begin == 0) { return; }
 		GetChild(selection_range_begin - 1).InsertBack(Extract(selection_range_begin, selection_range_end));
+	}
+}
+
+void BlockListView::Indent(size_t index) {
+	if (IsShiftDown()) {
+		if (GetParent().IsRoot()) { return; }
+		GetParent().InsertAfterSelf(Extract(index, index + 1));
+	} else {
+		if (index == 0) { return; }
+		GetChild(index - 1).InsertBack(Extract(index, index + 1));
 	}
 }
 

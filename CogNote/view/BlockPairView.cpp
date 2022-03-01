@@ -161,5 +161,9 @@ void BlockPairView::MergeAfterSelf() {
 	IsRoot() ? MergeFront() : GetParent().MergeAfter(*this);
 }
 
+void BlockPairView::IndentSelf() {
+	IsRoot() ? void() : GetParent().Indent(*this);
+}
+
 
 END_NAMESPACE(WndDesign)

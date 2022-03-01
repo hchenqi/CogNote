@@ -235,6 +235,11 @@ void BlockTextView::Delete(bool is_backspace) {
 	}
 }
 
+void BlockTextView::Indent() {
+	GetParent().IndentSelf();
+	SetCaret(caret_position);
+}
+
 void BlockTextView::Split() {
 	std::wstring str;
 	if (HasSelectionFocus()) {
@@ -314,6 +319,8 @@ void BlockTextView::OnKeyMsg(KeyMsg msg) {
 
 		case Key::Backspace: Delete(true); break;
 		case Key::Delete: Delete(false); break;
+
+		case Key::Tab: Indent(); break;
 
 		case CharKey('X'): if (IsCtrlDown()) { Cut(); } break;
 		case CharKey('C'): if (IsCtrlDown()) { Copy(); } break;

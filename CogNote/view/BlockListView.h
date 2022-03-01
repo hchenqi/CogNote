@@ -121,6 +121,9 @@ public:
 private:
 	void Delete();
 	void Indent();
+	void Indent(size_t index);
+public:
+	void Indent(BlockView& child) { Indent(GetChildIndex(child)); }
 
 	// message
 private:
