@@ -244,6 +244,27 @@ void BlockListView::InsertAt(size_t index, std::vector<std::unique_ptr<BlockPair
 	UpdateSelectionRegion(index, end);
 }
 
+void BlockListView::MergeBefore(size_t index) {
+	return index == 0 ? GetParent().MergeFront() : MergeAfter(index - 1);
+}
+
+void BlockListView::MergeAfter(size_t index) {
+	if (index >= child_list.size() - 1) { return; }
+	GetChild(index).MergeWith(GetChild(index + 1));
+	EraseChild(index + 1, 1);
+}
+
+void BlockListView::MergeAt(size_t index, BlockListView& list_view) {
+	InsertAt(index, list_view.Extract(0, list_view.child_list.size()));
+}
+
+std::unique_ptr<BlockPairView> BlockListView::Extract(size_t index) {
+	UnregisterChild(child_list[index].child);
+	std::unique_ptr<BlockPairView> item(static_cast<alloc_ptr<BlockPairView>>(child_list[index].child.release()));
+	EraseChild(index, 1);
+	return item;
+}
+
 std::vector<std::unique_ptr<BlockPairView>> BlockListView::Extract(size_t begin, size_t end) {
 	std::vector<std::unique_ptr<BlockPairView>> pair_view_list; pair_view_list.reserve(end - begin);
 	for (size_t i = begin; i < end; ++i) {

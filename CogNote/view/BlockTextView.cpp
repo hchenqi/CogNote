@@ -223,12 +223,12 @@ void BlockTextView::Delete(bool is_backspace) {
 		SetCaret(selection_range_begin);
 	} else {
 		if (is_backspace) {
-			if (caret_position == 0) { return; }
+			if (caret_position == 0) { return GetParent().MergeBeforeSelf(); }
 			size_t previous_caret_position = caret_position;
 			SetCaret(caret_position - 1);
 			DeleteText(caret_position, previous_caret_position - caret_position);
 		} else {
-			if (caret_position >= text.length()) { return; }
+			if (caret_position >= text.length()) { return GetParent().MergeAfterSelf(); }
 			SetCaret(caret_position);
 			DeleteText(caret_position, GetCharacterLength(caret_position));
 		}
@@ -267,6 +267,12 @@ void BlockTextView::OnImeString() {
 
 void BlockTextView::OnImeEnd() {
 	if (caret_position != ime_composition_end) { SetCaret(ime_composition_end); }
+}
+
+void BlockTextView::MergeBackWith(BlockTextView& text_view) {
+	size_t pos = text.size();
+	InsertText(pos, text_view.text);
+	SetCaret(pos);
 }
 
 void BlockTextView::Cut() {

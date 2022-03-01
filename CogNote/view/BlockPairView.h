@@ -86,6 +86,10 @@ public:
 	void InsertAfterSelf(std::wstring text);
 	void InsertAfterSelf(std::vector<std::wstring> text, size_t caret_pos);
 	void InsertAfterSelf(std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
+	void MergeFront();
+	void MergeWith(BlockPairView& pair_view);
+	void MergeBeforeSelf();
+	void MergeAfterSelf();
 };
 
 

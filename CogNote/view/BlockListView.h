@@ -101,6 +101,10 @@ private:
 	void InsertAt(size_t index, std::wstring text);
 	void InsertAt(size_t index, std::vector<std::wstring> text, size_t caret_pos);
 	void InsertAt(size_t index, std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
+	void MergeBefore(size_t index);
+	void MergeAfter(size_t index);
+	void MergeAt(size_t index, BlockListView& list_view);
+	std::unique_ptr<BlockPairView> Extract(size_t index);
 	std::vector<std::unique_ptr<BlockPairView>> Extract(size_t begin, size_t end);
 public:
 	void InsertFront(std::wstring text) { InsertAt(0, text); }
@@ -109,6 +113,11 @@ public:
 	void InsertAfter(BlockView& child, std::wstring text) { InsertAt(GetChildIndex(child) + 1, text); }
 	void InsertAfter(BlockView& child, std::vector<std::wstring> text, size_t caret_pos) { InsertAt(GetChildIndex(child) + 1, text, caret_pos); }
 	void InsertAfter(BlockView& child, std::vector<std::unique_ptr<BlockPairView>> pair_view_list) { InsertAt(GetChildIndex(child) + 1, std::move(pair_view_list)); }
+	void MergeBefore(BlockView& child) { MergeBefore(GetChildIndex(child)); }
+	void MergeAfter(BlockView& child) { MergeAfter(GetChildIndex(child)); }
+	void MergeFrontWith(BlockListView& list_view) { return MergeAt(0, list_view); }
+	void MergeBackWith(BlockListView& list_view) { return MergeAt(child_list.size(), list_view); }
+	std::unique_ptr<BlockPairView> PopFront() { return child_list.empty() ? nullptr : Extract(0); }
 private:
 	void Delete();
 	void Indent();

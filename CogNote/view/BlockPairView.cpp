@@ -142,5 +142,24 @@ void BlockPairView::InsertAfterSelf(std::vector<std::unique_ptr<BlockPairView>> 
 	IsRoot() ? void() : GetParent().InsertAfter(*this, std::move(pair_view_list));
 }
 
+void BlockPairView::MergeFront() {
+	std::unique_ptr<BlockPairView> front = GetListView().PopFront(); if (front == nullptr) { return; }
+	GetListView().MergeFrontWith(front->GetListView());
+	GetTextView().MergeBackWith(front->GetTextView());
+}
+
+void BlockPairView::MergeWith(BlockPairView& pair_view) {
+	GetListView().MergeBackWith(pair_view.GetListView());
+	GetTextView().MergeBackWith(pair_view.GetTextView());
+}
+
+void BlockPairView::MergeBeforeSelf() {
+	IsRoot() ? void() : GetParent().MergeBefore(*this);
+}
+
+void BlockPairView::MergeAfterSelf() {
+	IsRoot() ? MergeFront() : GetParent().MergeAfter(*this);
+}
+
 
 END_NAMESPACE(WndDesign)

@@ -93,6 +93,8 @@ private:
 	void OnImeBegin();
 	void OnImeString();
 	void OnImeEnd();
+public:
+	void MergeBackWith(BlockTextView& text_view);
 
 	// clipboard
 private:
