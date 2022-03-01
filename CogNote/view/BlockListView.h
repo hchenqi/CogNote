@@ -88,6 +88,9 @@ private:
 	// drag and drop
 private:
 	void RedrawDragDropCaretRegion();
+	void UpdateDragDropCaretRegion(size_t pos);
+public:
+	void DoDragDropBefore(BlockView& child) { UpdateDragDropCaretRegion(GetChildIndex(child)); }
 private:
 	virtual void DoDragDrop(BlockView& source, Point point) override;
 	virtual void CancelDragDrop() override;

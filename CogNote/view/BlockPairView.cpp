@@ -17,7 +17,7 @@ BlockListView& BlockPairView::GetParent() { return static_cast<BlockListView&>(B
 
 void BlockPairView::Initialize(std::wstring text) {
 	first = text_view = new BlockTextView(*this, text);
-	second = new PaddingFrame(Padding(20px, 5px, 0, 5px), list_view = new BlockListView(*this));
+	second = new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new BlockListView(*this));
 	RegisterChild(this->first); RegisterChild(this->second);
 }
 
@@ -95,10 +95,18 @@ void BlockPairView::DoSelect(Point point) {
 void BlockPairView::SelectChild(BlockView& child) { SelectSelf(); }
 
 void BlockPairView::DoDragDrop(BlockView& source, Point point) {
-	if (HitTestTextView(point)) {
-		DoChildDragDrop(GetTextView(), source, point);
+	if (dynamic_cast<BlockListView*>(&source) == nullptr) {
+		if (HitTestTextView(point)) {
+			DoChildDragDrop(GetTextView(), source, point);
+		} else {
+			DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
+		}
 	} else {
-		DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
+		if (point.y < GetRegionFirst().Center().y && !IsRoot()) {
+			GetParent().DoDragDropBefore(*this);
+		} else {
+			DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
+		}
 	}
 }
 

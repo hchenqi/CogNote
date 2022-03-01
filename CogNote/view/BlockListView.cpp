@@ -10,7 +10,7 @@ BEGIN_NAMESPACE(WndDesign)
 BEGIN_NAMESPACE(Anonymous)
 
 // style
-constexpr size_t gap = 5;
+constexpr size_t gap = 1;
 
 // selection
 constexpr Color selection_color = Color(Color::DimGray, 0x7f);
@@ -115,12 +115,12 @@ void BlockListView::OnChildRedraw(WndObject& child, Rect child_redraw_region) {
 }
 
 void BlockListView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
-	draw_region = draw_region.Intersect(Rect(point_zero, size)); if (draw_region.IsEmpty()) { return; }
-	auto it_begin = HitTestItem(draw_region.top());
-	auto it_end = HitTestItem(ceilf(draw_region.bottom()) - 1.0f);
-	for (auto it = it_begin; it <= it_end; ++it) {
-		Rect child_region(Point(0.0f, it->offset), Size(size.width, it->length));
-		DrawChild(it->child, child_region, figure_queue, draw_region);
+	if (!child_list.empty()) {
+		auto it_begin = HitTestItem(draw_region.top()), it_end = HitTestItem(ceilf(draw_region.bottom()) - 1.0f);
+		for (auto it = it_begin; it <= it_end; ++it) {
+			Rect child_region(Point(0.0f, it->offset), Size(size.width, it->length));
+			DrawChild(it->child, child_region, figure_queue, draw_region);
+		}
 	}
 	if (HasSelectionFocus()) {
 		figure_queue.add(selection_region.point, new Rectangle(selection_region.size, selection_color));
@@ -185,28 +185,29 @@ void BlockListView::ClearSelection() {
 
 void BlockListView::RedrawDragDropCaretRegion() { Redraw(drag_drop_caret_region); }
 
+void BlockListView::UpdateDragDropCaretRegion(size_t pos) {
+	if (HasSelectionFocus() && selection_range_begin <= pos && pos <= selection_range_end) { return ClearDragDropFocus(); }
+	if (HasDragDropFocus() && pos == drag_drop_caret_position) { return; }
+	SetDragDropFocus();
+	RedrawDragDropCaretRegion();
+	drag_drop_caret_position = pos;
+	drag_drop_caret_region = pos == 0 ?
+		Rect(Point(0.0f, -drag_drop_caret_height), Size(size.width, drag_drop_caret_height)) :
+		Rect(Point(0.0f, child_list[pos - 1].EndOffset()), Size(size.width, drag_drop_caret_height));
+	RedrawDragDropCaretRegion();
+}
+
 void BlockListView::DoDragDrop(BlockView& source, Point point) {
 	if (dynamic_cast<BlockListView*>(&source) == nullptr) {
 		if (child_list.empty()) { return ClearDragDropFocus(); }
 		auto it = HitTestItem(point.y); point.y -= it->offset;
 		return DoChildDragDrop(GetChild(it->child), source, point);
 	} else {
-		size_t caret_position = 0;
-		if (!child_list.empty()) {
-			auto it = HitTestItem(point.y); point.y -= it->offset;
-			caret_position = point.y < 0.0f ? 0 : it - child_list.begin() + 1;
-			if (HasSelectionFocus() && selection_range_begin <= caret_position && caret_position <= selection_range_end) { return ClearDragDropFocus(); }
-			if (point.y >= 0.0f && point.y < it->length) { return DoChildDragDrop(GetChild(it->child), source, point); }
-		}
-		if (!HasDragDropFocus() || caret_position != drag_drop_caret_position) {
-			SetDragDropFocus();
-			RedrawDragDropCaretRegion();
-			drag_drop_caret_position = caret_position;
-			drag_drop_caret_region = caret_position == 0 ?
-				Rect(Point(0.0f, -drag_drop_caret_height), Size(size.width, drag_drop_caret_height)) :
-				Rect(Point(0.0f, child_list[caret_position - 1].EndOffset()), Size(size.width, drag_drop_caret_height));
-			RedrawDragDropCaretRegion();
-		}
+		if (child_list.empty() || point.y < 0.0f) { return UpdateDragDropCaretRegion(0); }
+		auto it = HitTestItem(point.y); size_t pos = it - child_list.begin();
+		if (HasSelectionFocus() && selection_range_begin <= pos && pos < selection_range_end) { return ClearDragDropFocus(); }
+		if (point.y -= it->offset; point.y < it->length) { return DoChildDragDrop(GetChild(it->child), source, point); }
+		return UpdateDragDropCaretRegion(pos + 1);
 	}
 }
 
