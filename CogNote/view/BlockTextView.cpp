@@ -9,8 +9,6 @@
 #include "../common/string_helper.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
-
 BEGIN_NAMESPACE(Anonymous)
 
 // style
@@ -336,6 +334,3 @@ void BlockTextView::OnKeyMsg(KeyMsg msg) {
 	case KeyMsg::ImeEnd: OnImeEnd(); break;
 	}
 }
-
-
-END_NAMESPACE(WndDesign)

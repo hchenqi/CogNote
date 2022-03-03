@@ -6,8 +6,6 @@
 #include "WndDesign/common/unicode_helper.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
-
 class BlockPairView;
 
 
@@ -107,6 +105,3 @@ private:
 private:
 	virtual void OnKeyMsg(KeyMsg msg) override;
 };
-
-
-END_NAMESPACE(WndDesign)

@@ -5,8 +5,6 @@
 #include "WndDesign/figure/shape.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
-
 BEGIN_NAMESPACE(Anonymous)
 
 // style
@@ -313,6 +311,3 @@ void BlockListView::OnKeyMsg(KeyMsg msg) {
 		break;
 	}
 }
-
-
-END_NAMESPACE(WndDesign)

@@ -6,9 +6,6 @@
 #include "WndDesign/frame/PaddingFrame.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
-
-
 BlockPairView::BlockPairView(RootFrame& root) : BlockView(root) { Initialize(L"Root"); }
 
 BlockPairView::BlockPairView(BlockView& parent, std::wstring text) : BlockView(parent) { Initialize(text); }
@@ -164,6 +161,3 @@ void BlockPairView::MergeAfterSelf() {
 void BlockPairView::IndentSelf() {
 	IsRoot() ? void() : GetParent().Indent(*this);
 }
-
-
-END_NAMESPACE(WndDesign)

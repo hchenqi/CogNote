@@ -3,7 +3,8 @@
 #include "WndDesign/window/wnd_traits.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
+using namespace WndDesign;
+
 
 class RootFrame;
 
@@ -75,6 +76,3 @@ protected:
 	bool IsCtrlDown() const;
 	bool IsShiftDown() const;
 };
-
-
-END_NAMESPACE(WndDesign)

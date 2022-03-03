@@ -7,8 +7,6 @@
 #include "message/mouse_helper.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
-
 BEGIN_NAMESPACE(Anonymous)
 
 // drag and drop
@@ -172,6 +170,3 @@ void RootFrame::OnNotifyMsg(NotifyMsg msg) {
 		break;
 	}
 }
-
-
-END_NAMESPACE(WndDesign)

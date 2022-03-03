@@ -3,8 +3,6 @@
 #include "block_view.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
-
 class BlockTextView;
 class BlockListView;
 
@@ -92,6 +90,3 @@ public:
 	void MergeAfterSelf();
 	void IndentSelf();
 };
-
-
-END_NAMESPACE(WndDesign)

@@ -6,9 +6,6 @@
 #include "WndDesign/layout/SplitLayout.h"
 
 
-using namespace WndDesign;
-
-
 struct MainFrameStyle : public TitleBarFrame::Style {
 	MainFrameStyle() {
 		width.normal(800px).max(100pct);

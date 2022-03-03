@@ -4,7 +4,7 @@
 #include "WndDesign/message/timer.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
+using namespace WndDesign;
 
 
 enum class MouseHelperMsg {
@@ -65,6 +65,3 @@ public:
 		return MouseHelperMsg::None;
 	}
 };
-
-
-END_NAMESPACE(WndDesign)

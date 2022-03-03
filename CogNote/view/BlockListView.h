@@ -3,8 +3,6 @@
 #include "block_view.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
-
 class BlockPairView;
 
 
@@ -129,6 +127,3 @@ public:
 private:
 	virtual void OnKeyMsg(KeyMsg msg) override;
 };
-
-
-END_NAMESPACE(WndDesign)

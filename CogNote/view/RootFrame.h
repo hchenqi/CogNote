@@ -3,7 +3,8 @@
 #include "WndDesign/frame/ScrollFrame.h"
 
 
-BEGIN_NAMESPACE(WndDesign)
+using namespace WndDesign;
+
 
 class BlockView;
 
@@ -67,6 +68,3 @@ private:
 	virtual void OnKeyMsg(KeyMsg msg) override;
 	virtual void OnNotifyMsg(NotifyMsg msg) override;
 };
-
-
-END_NAMESPACE(WndDesign)
