@@ -37,12 +37,12 @@ void RootFrame::SetCaretFocus(BlockView& block_view) {
 	caret_focus = &block_view;
 }
 
-void RootFrame::ClearCaret() {
-	if (caret_focus != nullptr) { caret_focus->ClearCaret(); caret_focus = nullptr; }
-}
-
 void RootFrame::SetCaret(Point point) {
 	GetChild().SetCaret(ConvertToChildPoint(point));
+}
+
+void RootFrame::ClearCaret() {
+	if (caret_focus) { caret_focus->ClearCaret(); caret_focus = nullptr; }
 }
 
 void RootFrame::SetSelectionFocus(BlockView& block_view) {
@@ -51,12 +51,8 @@ void RootFrame::SetSelectionFocus(BlockView& block_view) {
 	selection_focus = &block_view;
 }
 
-void RootFrame::ClearSelection() {
-	if (selection_focus != nullptr) { selection_focus->ClearSelection(); selection_focus = nullptr; }
-}
-
 void RootFrame::BeginSelect() {
-	caret_focus->BeginSelect();
+	if (caret_focus) { caret_focus->BeginSelect(); }
 }
 
 void RootFrame::DoSelect(Point point) {
@@ -64,15 +60,19 @@ void RootFrame::DoSelect(Point point) {
 }
 
 void RootFrame::FinishSelect() {
-	if (selection_focus != nullptr) { selection_focus->FinishSelect(); }
+	if (selection_focus) { selection_focus->FinishSelect(); }
 }
 
 void RootFrame::SelectMore() {
-	if (caret_focus != nullptr) {
+	if (caret_focus) {
 		caret_focus->SelectMore();
-	} else {
+	} else if (selection_focus) {
 		selection_focus->SelectMore();
 	}
+}
+
+void RootFrame::ClearSelection() {
+	if (selection_focus) { selection_focus->ClearSelection(); selection_focus = nullptr; }
 }
 
 void RootFrame::SetDragDropFocus(BlockView& block_view) {
@@ -158,8 +158,11 @@ void RootFrame::OnKeyMsg(KeyMsg msg) {
 		}
 		break;
 	}
-	if (caret_focus) { caret_focus->OnKeyMsg(msg); }
-	if (selection_focus) { selection_focus->OnKeyMsg(msg); }
+	if (caret_focus) {
+		caret_focus->OnKeyMsg(msg);
+	} else if (selection_focus) {
+		selection_focus->OnKeyMsg(msg);
+	}
 }
 
 void RootFrame::OnNotifyMsg(NotifyMsg msg) {

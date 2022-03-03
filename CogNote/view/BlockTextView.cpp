@@ -15,7 +15,7 @@ BEGIN_NAMESPACE(Anonymous)
 struct Style : public TextBlockStyle {
 	Style() {
 		paragraph.line_height(25px);
-		font.family(L"Calibri", L"Segoe UI Emoji", L"DengXian").size(20);
+		font.family(L"Times New Roman", L"SimSun").size(20);
 	}
 }style;
 
@@ -31,10 +31,13 @@ constexpr Color selection_color = Color(Color::DimGray, 0x7f);
 
 size_t selection_begin = 0;
 size_t selection_range_begin = 0;
-size_t selection_range_end = 0;
+size_t selection_range_length = 0;
 
 std::vector<TextBlock::HitTestInfo> selection_info;
 Rect selection_region_union;
+
+inline size_t get_selection_range_end() { return selection_range_begin + selection_range_length; }
+inline bool PositionCoveredBySelection(size_t pos) { return selection_range_begin <= pos && pos <= get_selection_range_end(); }
 
 // drag and drop
 constexpr float drag_drop_caret_width = 1.0f;
@@ -45,7 +48,9 @@ Rect drag_drop_caret_region = region_empty;
 
 // ime
 size_t ime_composition_begin = 0;
-size_t ime_composition_end = 0;
+size_t ime_composition_length = 0;
+
+inline size_t get_ime_composition_end() { return ime_composition_begin + ime_composition_length; }
 
 END_NAMESPACE(Anonymous)
 
@@ -57,17 +62,11 @@ BlockTextView::BlockTextView(BlockView& parent, std::wstring text) :
 
 BlockPairView& BlockTextView::GetParent() { return static_cast<BlockPairView&>(BlockView::GetParent()); }
 
-void BlockTextView::TextUpdated() {
-	text_block.SetText(style, text);
-	word_break_iterator.SetText(text);
-	SizeUpdated(UpdateLayout());
-	Redraw(region_infinite);
-}
 
 Size BlockTextView::UpdateLayout() {
 	text_block.UpdateSizeRef(Size(width, length_max));
 	if (HasCaretFocus()) { SetCaret(caret_position); }
-	if (HasSelectionFocus()) { UpdateSelectionRegion(selection_range_begin, selection_range_end); }
+	if (HasSelectionFocus()) { UpdateSelectionRegion(selection_range_begin, selection_range_length); }
 	return Size(width, text_block.GetSize().height);
 }
 
@@ -110,13 +109,13 @@ void BlockTextView::ClearCaret() { RedrawCaretRegion(); }
 
 void BlockTextView::RedrawSelectionRegion() { Redraw(selection_region_union); }
 
-void BlockTextView::UpdateSelectionRegion(size_t begin, size_t end) {
+void BlockTextView::UpdateSelectionRegion(size_t begin, size_t length) {
 	SetSelectionFocus();
 	RedrawSelectionRegion();
-	selection_range_begin = begin; selection_range_end = end;
+	selection_range_begin = begin; selection_range_length = length;
 	selection_info.clear(); selection_region_union = region_empty;
-	if (end == begin) { return; }
-	selection_info = text_block.HitTestTextRange(begin, end - begin);
+	if (length == 0) { return; }
+	selection_info = text_block.HitTestTextRange(begin, length);
 	for (auto& it : selection_info) {
 		selection_region_union = selection_region_union.Union(it.geometry_region);
 	}
@@ -126,7 +125,7 @@ void BlockTextView::UpdateSelectionRegion(size_t begin, size_t end) {
 void BlockTextView::SelectWord() {
 	if (text.empty()) { return SelectSelf(); }
 	TextRange word_range = word_break_iterator.Seek(caret_position >= text.length() ? caret_position - 1 : caret_position);
-	UpdateSelectionRegion(word_range.left(), word_range.right());
+	UpdateSelectionRegion(word_range.begin, word_range.length);
 }
 
 bool BlockTextView::HitTestSelection(Point point) {
@@ -137,31 +136,28 @@ bool BlockTextView::HitTestSelection(Point point) {
 void BlockTextView::BeginSelect(BlockView& child) { selection_begin = caret_position; }
 
 void BlockTextView::DoSelect(Point point) {
-	size_t begin = selection_begin, end = text_block.HitTestPoint(point).text_position;
-	if (end < begin) { std::swap(begin, end); }
-	if (selection_range_begin == begin && selection_range_end == end) { return; }
-	UpdateSelectionRegion(begin, end);
+	size_t begin = selection_begin, end = text_block.HitTestPoint(point).text_position; if (end < begin) { std::swap(begin, end); }
+	size_t length = end - begin;
+	if (selection_range_begin == begin && selection_range_length == length) { return; }
+	UpdateSelectionRegion(begin, length);
 }
 
 void BlockTextView::SelectMore() {
 	if (HasCaretFocus()) { return SelectWord(); }
 	if (HasSelectionFocus()) {
-		if (selection_range_begin == 0 && selection_range_end == text.size()) { return SelectSelf(); }
+		if (selection_range_begin == 0 && selection_range_length == text.size()) { return SelectSelf(); }
 		UpdateSelectionRegion(0, text.size());
 	}
 }
 
-void BlockTextView::ClearSelection() {
-	RedrawSelectionRegion(); selection_info.clear(); selection_region_union = region_empty;
-	selection_range_begin = selection_range_end = 0;
-}
+void BlockTextView::ClearSelection() { RedrawSelectionRegion(); }
 
 void BlockTextView::RedrawDragDropCaretRegion() { Redraw(drag_drop_caret_region); }
 
 void BlockTextView::DoDragDrop(BlockView& source, Point point) {
 	if (dynamic_cast<BlockTextView*>(&source) == nullptr) { return ClearDragDropFocus(); }
 	HitTestInfo info = text_block.HitTestPoint(point);
-	if (HasSelectionFocus() && selection_range_begin <= info.text_position && info.text_position <= selection_range_end) {
+	if (HasSelectionFocus() && PositionCoveredBySelection(info.text_position)) {
 		ClearDragDropFocus();
 	} else if (!HasDragDropFocus() || drag_drop_caret_position != info.text_position) {
 		SetDragDropFocus();
@@ -176,28 +172,41 @@ void BlockTextView::CancelDragDrop() {
 	RedrawDragDropCaretRegion(); drag_drop_caret_region = region_empty;
 }
 
+void BlockTextView::TextUpdated() {
+	text_block.SetText(style, text);
+	word_break_iterator.SetText(text);
+	SizeUpdated(UpdateLayout());
+	Redraw(region_infinite);
+}
+
+void BlockTextView::MergeBackWith(BlockTextView& text_view) {
+	size_t pos = text.size();
+	InsertText(pos, text_view.text);
+	SetCaret(pos);
+}
+
 void BlockTextView::FinishDragDrop(BlockView& source) {
 	BlockTextView& text_view = static_cast<BlockTextView&>(source);
-	size_t selection_length = selection_range_end - selection_range_begin;
 	if (&text_view == this) {
+		size_t selection_range_end = get_selection_range_end();
 		if (drag_drop_caret_position < selection_range_begin) {
 			std::rotate(text.begin() + drag_drop_caret_position, text.begin() + selection_range_begin, text.begin() + selection_range_end);
 		} else {
 			std::rotate(text.begin() + selection_range_begin, text.begin() + selection_range_end, text.begin() + drag_drop_caret_position);
-			drag_drop_caret_position -= selection_length;
+			drag_drop_caret_position -= selection_range_length;
 		}
 		TextUpdated();
 	} else {
-		std::wstring str = text_view.text.substr(selection_range_begin, selection_length);
+		std::wstring str = text_view.text.substr(selection_range_begin, selection_range_length);
 		InsertText(drag_drop_caret_position, str);
-		text_view.DeleteText(selection_range_begin, selection_length);
+		text_view.DeleteText(selection_range_begin, selection_range_length);
 	}
-	UpdateSelectionRegion(drag_drop_caret_position, drag_drop_caret_position + selection_length);
+	UpdateSelectionRegion(drag_drop_caret_position, selection_range_length);
 }
 
 void BlockTextView::Insert(wchar ch) {
 	if (HasSelectionFocus()) {
-		ReplaceText(selection_range_begin, selection_range_end - selection_range_begin, ch);
+		ReplaceText(selection_range_begin, selection_range_length, ch);
 		SetCaret(selection_range_begin + 1);
 	} else {
 		InsertText(caret_position, ch);
@@ -207,7 +216,7 @@ void BlockTextView::Insert(wchar ch) {
 
 void BlockTextView::Insert(std::wstring str) {
 	if (HasSelectionFocus()) {
-		ReplaceText(selection_range_begin, selection_range_end - selection_range_begin, str);
+		ReplaceText(selection_range_begin, selection_range_length, str);
 		SetCaret(selection_range_begin + str.length());
 	} else {
 		InsertText(caret_position, str);
@@ -217,65 +226,45 @@ void BlockTextView::Insert(std::wstring str) {
 
 void BlockTextView::Delete(bool is_backspace) {
 	if (HasSelectionFocus()) {
-		DeleteText(selection_range_begin, selection_range_end - selection_range_begin);
+		DeleteText(selection_range_begin, selection_range_length);
 		SetCaret(selection_range_begin);
 	} else {
 		if (is_backspace) {
-			if (caret_position == 0) { return GetParent().MergeBeforeSelf(); }
-			size_t previous_caret_position = caret_position;
-			SetCaret(caret_position - 1);
-			DeleteText(caret_position, previous_caret_position - caret_position);
+			if (caret_position == 0) {
+				size_t reverse_pos = text.length();
+				BlockTextView& text_view = GetParent().MergeBeforeSelf();
+				text_view.SetCaret(text_view.text.length() - reverse_pos);
+			} else {
+				size_t previous_caret_position = caret_position;
+				SetCaret(caret_position - 1);
+				DeleteText(caret_position, previous_caret_position - caret_position);
+			}
 		} else {
-			if (caret_position >= text.length()) { return GetParent().MergeAfterSelf(); }
-			SetCaret(caret_position);
-			DeleteText(caret_position, GetCharacterLength(caret_position));
+			if (caret_position >= text.length()) {
+				size_t pos = text.length();
+				GetParent().MergeAfterSelf().SetCaret(pos);
+			} else {
+				SetCaret(caret_position);
+				DeleteText(caret_position, GetCharacterLength(caret_position));
+			}
 		}
 	}
-}
-
-void BlockTextView::Indent() {
-	GetParent().IndentSelf();
-	SetCaret(caret_position);
 }
 
 void BlockTextView::Split() {
 	std::wstring str;
 	if (HasSelectionFocus()) {
-		str = text.substr(selection_range_end);
+		str = text.substr(get_selection_range_end());
 		DeleteText(selection_range_begin, -1);
 	} else {
 		str = text.substr(caret_position);
 		DeleteText(caret_position, -1);
 	}
-	IsCtrlDown() ? GetParent().InsertFront(str) : GetParent().InsertAfterSelf(str);
+	(IsCtrlDown() || GetParent().IsRoot() ? GetParent().InsertFront(str) : GetParent().InsertAfterSelf(str)).SetCaret(0);
 }
 
-void BlockTextView::OnImeBegin() {
-	if (HasSelectionFocus()) {
-		ime_composition_begin = selection_range_begin;
-		ime_composition_end = selection_range_end;
-	} else {
-		ime_composition_begin = caret_position;
-		ime_composition_end = ime_composition_begin;
-	}
-	ime.SetPosition(*this, caret_region.LeftBottom());
-}
-
-void BlockTextView::OnImeString() {
-	std::wstring str = ime.GetString();
-	ReplaceText(ime_composition_begin, ime_composition_end - ime_composition_begin, str);
-	ime_composition_end = ime_composition_begin + str.length();
-	SetCaret(ime_composition_begin + ime.GetCursorPosition());
-}
-
-void BlockTextView::OnImeEnd() {
-	if (caret_position != ime_composition_end) { SetCaret(ime_composition_end); }
-}
-
-void BlockTextView::MergeBackWith(BlockTextView& text_view) {
-	size_t pos = text.size();
-	InsertText(pos, text_view.text);
-	SetCaret(pos);
+void BlockTextView::Indent() {
+	GetParent().IndentSelf();
 }
 
 void BlockTextView::Cut() {
@@ -287,26 +276,48 @@ void BlockTextView::Cut() {
 
 void BlockTextView::Copy() {
 	if (HasSelectionFocus()) {
-		SetClipboardData(text.substr(selection_range_begin, selection_range_end - selection_range_begin));
+		SetClipboardData(text.substr(selection_range_begin, selection_range_length));
 	}
 }
 
 void BlockTextView::Paste() {
 	std::wstring str; GetClipboardData(str);
-	std::vector<std::wstring> text = split_string_filtered(str);
-	if (text.size() == 1) {
-		Insert(text.front());
+	std::vector<std::wstring> text_list = split_string_filtered(str);
+	if (text_list.size() == 1) {
+		Insert(text_list.front());
 	} else {
 		if (HasSelectionFocus()) {
-			str = this->text.substr(selection_range_end);
-			ReplaceText(selection_range_begin, -1, text.front());
+			str = this->text.substr(get_selection_range_end());
+			ReplaceText(selection_range_begin, -1, text_list.front());
 		} else {
 			str = this->text.substr(caret_position);
-			ReplaceText(caret_position, -1, text.front());
+			ReplaceText(caret_position, -1, text_list.front());
 		}
-		text.erase(text.begin()); text.back().insert(0, str);
-		GetParent().InsertAfterSelf(text, str.size());
+		text_list.erase(text_list.begin()); text_list.back().insert(0, str);
+		(GetParent().IsRoot() ? GetParent().InsertFront(text_list) : GetParent().InsertAfterSelf(text_list)).SetCaret(str.size());
 	}
+}
+
+void BlockTextView::OnImeBegin() {
+	if (HasSelectionFocus()) {
+		ime_composition_begin = selection_range_begin;
+		ime_composition_length = selection_range_length;
+	} else {
+		ime_composition_begin = caret_position;
+		ime_composition_length = 0;
+	}
+	ime.SetPosition(*this, caret_region.LeftBottom());
+}
+
+void BlockTextView::OnImeString() {
+	std::wstring str = ime.GetString();
+	ReplaceText(ime_composition_begin, ime_composition_length, str);
+	ime_composition_length = str.length();
+	SetCaret(ime_composition_begin + ime.GetCursorPosition());
+}
+
+void BlockTextView::OnImeEnd() {
+	if (caret_position != get_ime_composition_end()) { SetCaret(get_ime_composition_end()); }
 }
 
 void BlockTextView::OnKeyMsg(KeyMsg msg) {

@@ -57,10 +57,10 @@ private:
 	virtual void OnDraw(FigureQueue& figure_queue, Rect draw_region) override;
 
 	// caret
-public:
-	void SetTextViewCaret(size_t pos);
 private:
 	virtual void SetCaret(Point point) override;
+public:
+	void SetTextViewCaret(size_t pos);
 
 	// selection
 private:
@@ -74,19 +74,19 @@ private:
 private:
 	virtual void DoDragDrop(BlockView& source, Point point) override;
 
-	// input
+	// route
 public:
-	void InsertFront(std::wstring text);
-	void InsertBack(std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
-	void InsertAfter(BlockView& child, std::wstring text);
-	void InsertAfter(BlockView& child, std::vector<std::wstring> text, size_t caret_pos);
-	void InsertAfter(BlockView& child, std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
-	void InsertAfterSelf(std::wstring text);
-	void InsertAfterSelf(std::vector<std::wstring> text, size_t caret_pos);
-	void InsertAfterSelf(std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
-	void MergeFront();
-	void MergeWith(BlockPairView& pair_view);
-	void MergeBeforeSelf();
-	void MergeAfterSelf();
-	void IndentSelf();
+	BlockTextView& InsertFront(std::wstring text);
+	BlockTextView& InsertFront(std::vector<std::wstring> text_list);
+	BlockPairView& InsertBack(std::unique_ptr<BlockPairView> pair_view);
+	BlockListView& InsertBack(std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
+	BlockTextView& InsertAfterSelf(std::wstring text);
+	BlockTextView& InsertAfterSelf(std::vector<std::wstring> text_list);
+	BlockPairView& InsertAfterSelf(std::unique_ptr<BlockPairView> pair_view);
+	BlockListView& InsertAfterSelf(std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
+	BlockPairView& MergeFront();
+	BlockPairView& MergeWith(BlockPairView& pair_view);
+	BlockTextView& MergeBeforeSelf();
+	BlockTextView& MergeAfterSelf();
+	BlockTextView& IndentSelf();
 };

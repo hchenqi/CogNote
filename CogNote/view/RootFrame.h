@@ -31,8 +31,8 @@ public:
 	ref_ptr<BlockView> GetCaretFocus() const { return caret_focus; }
 	void SetCaretFocus(BlockView& block_view);
 private:
-	void ClearCaret();
 	void SetCaret(Point point);
+	void ClearCaret();
 
 	// selection
 private:
@@ -40,12 +40,13 @@ private:
 public:
 	ref_ptr<BlockView> GetSelectionFocus() const { return selection_focus; }
 	void SetSelectionFocus(BlockView& block_view);
+	void ClearSelectionFocus() { ClearSelection(); }
 private:
-	void ClearSelection();
 	void BeginSelect();
 	void DoSelect(Point point);
 	void FinishSelect();
 	void SelectMore();
+	void ClearSelection();
 
 	// drag and drop
 private:

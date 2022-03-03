@@ -5,6 +5,7 @@
 
 bool BlockView::HasCaretFocus() const { return root.GetCaretFocus() == this; }
 void BlockView::SetCaretFocus() { root.SetCaretFocus(*this); }
+void BlockView::ClearSelectionFocus() { root.ClearSelectionFocus(); }
 bool BlockView::HasSelectionFocus() const { return root.GetSelectionFocus() == this; }
 void BlockView::SetSelectionFocus() { root.SetSelectionFocus(*this); }
 bool BlockView::HasDragDropFocus() const {	return root.GetDragDropFocus() == this; }

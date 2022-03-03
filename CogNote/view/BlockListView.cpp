@@ -8,14 +8,18 @@
 BEGIN_NAMESPACE(Anonymous)
 
 // style
-constexpr size_t gap = 1;
+constexpr float gap = 1.0f;
 
 // selection
 constexpr Color selection_color = Color(Color::DimGray, 0x7f);
 
 size_t selection_range_begin = 0;
-size_t selection_range_end = 0;
+size_t selection_range_length = 0;
 Rect selection_region = region_empty;
+
+inline size_t get_selection_range_end() { return selection_range_begin + selection_range_length; }
+inline bool PositionInSelection(size_t pos) { return selection_range_begin <= pos && pos < get_selection_range_end(); }
+inline bool PositionCoveredBySelection(size_t pos) { return selection_range_begin <= pos && pos <= get_selection_range_end(); }
 
 // drag and drop
 constexpr float drag_drop_caret_height = 1.0f;
@@ -29,37 +33,12 @@ END_NAMESPACE(Anonymous)
 
 BlockPairView& BlockListView::GetParent() { return static_cast<BlockPairView&>(BlockView::GetParent()); }
 
+BlockPairView& BlockListView::GetChild(child_ptr& child) { return static_cast<BlockPairView&>(*child); }
+
 void BlockListView::UpdateIndex(size_t begin) {
 	for (size_t index = begin; index < child_list.size(); ++index) {
 		SetChildIndex(child_list[index].child, index);
 	}
-}
-
-BlockPairView& BlockListView::GetChild(child_ptr& child) { return static_cast<BlockPairView&>(*child); }
-
-void BlockListView::InsertChild(size_t index, child_ptr child) {
-	if (index > child_list.size()) { index = child_list.size(); }
-	auto it = child_list.emplace(child_list.begin() + index, std::move(child));
-	RegisterChild(it->child);
-	it->length = UpdateChildSizeRef(it->child, Size(size.width, length_min)).height;
-	UpdateIndex(index); UpdateLayout(index);
-}
-
-void BlockListView::InsertChild(size_t index, std::vector<child_ptr> children) {
-	if (index > child_list.size()) { index = child_list.size(); }
-	auto it = child_list.insert(child_list.begin() + index, std::make_move_iterator(children.begin()), std::make_move_iterator(children.end()));
-	for (auto it_end = it + children.size(); it != it_end; ++it, ++index) {
-		RegisterChild(it->child); SetChildIndex(it->child, index);
-		it->length = UpdateChildSizeRef(it->child, Size(size.width, length_min)).height;
-	}
-	UpdateIndex(index); UpdateLayout(index - children.size());
-}
-
-void BlockListView::EraseChild(size_t begin, size_t count) {
-	if (begin > child_list.size() || count == 0) { return; }
-	size_t end = begin + count; if (end > child_list.size()) { end = child_list.size(); }
-	child_list.erase(child_list.begin() + begin, child_list.begin() + end);
-	UpdateIndex(begin); UpdateLayout(begin);
 }
 
 BlockListView::child_iter BlockListView::HitTestItem(float offset) {
@@ -69,7 +48,7 @@ BlockListView::child_iter BlockListView::HitTestItem(float offset) {
 }
 
 void BlockListView::UpdateLayout(size_t index) {
-	size.height = index == 0 ? (child_list.size() == 0 ? 0.0f : 0 - gap) : child_list[index - 1].EndOffset();
+	size.height = index == 0 ? (child_list.size() == 0 ? 0.0f : -gap) : child_list[index - 1].EndOffset();
 	for (index; index < child_list.size(); index++) {
 		size.height += gap;
 		child_list[index].offset = size.height;
@@ -89,7 +68,7 @@ Size BlockListView::OnSizeRefUpdate(Size size_ref) {
 		}
 		size.height -= child_list.empty() ? 0.0f : gap;
 		if (HasSelectionFocus()) {
-			UpdateSelectionRegion(selection_range_begin, selection_range_end);
+			UpdateSelectionRegion(selection_range_begin, selection_range_length);
 		}
 	}
 	return size;
@@ -136,15 +115,15 @@ void BlockListView::SetCaret(Point point) {
 
 void BlockListView::RedrawSelectionRegion() { Redraw(selection_region); }
 
-void BlockListView::UpdateSelectionRegion(size_t begin, size_t end) {
+void BlockListView::UpdateSelectionRegion(size_t begin, size_t length) {
 	SetSelectionFocus();
 	RedrawSelectionRegion();
-	selection_range_begin = begin; selection_range_end = end;
-	if (end == begin) { selection_region = region_empty; return; }
+	selection_range_begin = begin; selection_range_length = length;
+	if (length == 0) { selection_region = region_empty; return; }
 	selection_region.point.x = 0.0f;
 	selection_region.point.y = child_list[begin].BeginOffset();
 	selection_region.size.width = size.width;
-	selection_region.size.height = child_list[end - 1].EndOffset() - selection_region.point.y;
+	selection_region.size.height = child_list[begin + length - 1].EndOffset() - selection_region.point.y;
 	RedrawSelectionRegion();
 }
 
@@ -161,30 +140,25 @@ void BlockListView::DoSelect(Point point) {
 		DoChildSelect(GetChild(it->child), point);
 	} else {
 		size_t begin = selection_begin, end = index; if (end < begin) { std::swap(begin, end); }
-		if (selection_range_begin == begin && selection_range_end == end + 1) { return; }
-		UpdateSelectionRegion(begin, end + 1);
+		size_t length = end + 1 - begin;
+		if (selection_range_begin == begin && selection_range_length == length) { return; }
+		UpdateSelectionRegion(begin, length);
 	}
 }
 
-void BlockListView::SelectChild(BlockView& child) {
-	size_t index = GetChildIndex(child);
-	UpdateSelectionRegion(index, index + 1);
-}
+void BlockListView::SelectChild(BlockView& child) { UpdateSelectionRegion(GetChildIndex(child), 1); }
 
 void BlockListView::SelectMore() {
-	if (selection_range_begin == 0 && selection_range_end == child_list.size()) { return SelectSelf(); }
+	if (selection_range_begin == 0 && selection_range_length == child_list.size()) { return SelectSelf(); }
 	UpdateSelectionRegion(0, child_list.size());
 }
 
-void BlockListView::ClearSelection() {
-	RedrawSelectionRegion(); selection_region = region_empty;
-	selection_range_begin = selection_range_end = 0;
-}
+void BlockListView::ClearSelection() { RedrawSelectionRegion(); }
 
 void BlockListView::RedrawDragDropCaretRegion() { Redraw(drag_drop_caret_region); }
 
 void BlockListView::UpdateDragDropCaretRegion(size_t pos) {
-	if (HasSelectionFocus() && selection_range_begin <= pos && pos <= selection_range_end) { return ClearDragDropFocus(); }
+	if (HasSelectionFocus() && PositionCoveredBySelection(pos)) { return ClearDragDropFocus(); }
 	if (HasDragDropFocus() && pos == drag_drop_caret_position) { return; }
 	SetDragDropFocus();
 	RedrawDragDropCaretRegion();
@@ -203,7 +177,7 @@ void BlockListView::DoDragDrop(BlockView& source, Point point) {
 	} else {
 		if (child_list.empty() || point.y < 0.0f) { return UpdateDragDropCaretRegion(0); }
 		auto it = HitTestItem(point.y); size_t pos = it - child_list.begin();
-		if (HasSelectionFocus() && selection_range_begin <= pos && pos < selection_range_end) { return ClearDragDropFocus(); }
+		if (HasSelectionFocus() && PositionInSelection(pos)) { return ClearDragDropFocus(); }
 		if (point.y -= it->offset; point.y < it->length) { return DoChildDragDrop(GetChild(it->child), source, point); }
 		return UpdateDragDropCaretRegion(pos + 1);
 	}
@@ -213,89 +187,129 @@ void BlockListView::CancelDragDrop() {
 	RedrawDragDropCaretRegion(); drag_drop_caret_region = region_empty;
 }
 
-void BlockListView::FinishDragDrop(BlockView& source) {
-	BlockListView& list_view = static_cast<BlockListView&>(source);
-	size_t selection_length = selection_range_end - selection_range_begin;
-	if (&list_view == this && drag_drop_caret_position > selection_range_end) { drag_drop_caret_position -= selection_length; }
-	InsertAt(drag_drop_caret_position, list_view.Extract(selection_range_begin, selection_range_end));
-	UpdateSelectionRegion(drag_drop_caret_position, drag_drop_caret_position + selection_length);
+void BlockListView::InsertChild(size_t index, child_ptr child) {
+	RegisterChild(child);
+	if (index > child_list.size()) { index = child_list.size(); }
+	auto it = child_list.emplace(child_list.begin() + index, std::move(child));
+	UpdateIndex(index);
+	it->length = UpdateChildSizeRef(it->child, Size(size.width, length_min)).height;
+	UpdateLayout(index);
 }
 
-void BlockListView::InsertAt(size_t index, std::wstring text) {
+void BlockListView::InsertChild(size_t index, std::vector<child_ptr> children) {
+	for (auto& child : children) { RegisterChild(child); }
+	if (index > child_list.size()) { index = child_list.size(); }
+	auto it = child_list.insert(child_list.begin() + index, std::make_move_iterator(children.begin()), std::make_move_iterator(children.end()));
+	UpdateIndex(index);
+	for (auto it_end = it + children.size(); it != it_end; ++it) {
+		it->length = UpdateChildSizeRef(it->child, Size(size.width, length_min)).height;
+	}
+	UpdateLayout(index);
+}
+
+void BlockListView::EraseChild(size_t begin, size_t length) {
+	if (begin > child_list.size() || length == 0) { return; }
+	size_t end = begin + length; if (end > child_list.size()) { end = child_list.size(); }
+	child_list.erase(child_list.begin() + begin, child_list.begin() + end);
+	UpdateIndex(begin); UpdateLayout(begin);
+}
+
+BlockPairView& BlockListView::InsertChild(size_t index, std::wstring text) {
 	InsertChild(index, new BlockPairView(*this, text));
-	GetChild(index).SetTextViewCaret(0);
+	return GetChild(index);
 }
 
-void BlockListView::InsertAt(size_t index, std::vector<std::wstring> text, size_t caret_pos) {
-	std::vector<child_ptr> children; children.reserve(text.size());
-	for (auto it = text.begin(); it != text.end(); ++it) {
+BlockPairView& BlockListView::InsertChild(size_t index, std::vector<std::wstring> text_list) {
+	std::vector<child_ptr> children; children.reserve(text_list.size());
+	for (auto it = text_list.begin(); it != text_list.end(); ++it) {
 		children.emplace_back(new BlockPairView(*this, std::move(*it)));
 	}
 	InsertChild(index, std::move(children));
-	GetChild(index + text.size() - 1).SetTextViewCaret(caret_pos);
+	return GetChild(index + text_list.size() - 1);
 }
 
-void BlockListView::InsertAt(size_t index, std::vector<std::unique_ptr<BlockPairView>> pair_view_list) {
-	size_t end = index + pair_view_list.size();
+BlockPairView& BlockListView::InsertChild(size_t index, std::unique_ptr<BlockPairView> pair_view) {
+	SetChildParent(*pair_view);
+	InsertChild(index, child_ptr(std::move(pair_view)));
+	return GetChild(index);
+}
+
+void BlockListView::InsertChild(size_t index, std::vector<std::unique_ptr<BlockPairView>> pair_view_list) {
 	for (auto& it : pair_view_list) { SetChildParent(*it); }
 	InsertChild(index, std::move(reinterpret_cast<std::vector<child_ptr>&>(pair_view_list)));
-	UpdateSelectionRegion(index, end);
 }
 
-void BlockListView::MergeBefore(size_t index) {
-	return index == 0 ? GetParent().MergeFront() : MergeAfter(index - 1);
-}
-
-void BlockListView::MergeAfter(size_t index) {
-	if (index >= child_list.size() - 1) { return; }
-	GetChild(index).MergeWith(GetChild(index + 1));
-	EraseChild(index + 1, 1);
-}
-
-void BlockListView::MergeAt(size_t index, BlockListView& list_view) {
-	InsertAt(index, list_view.Extract(0, list_view.child_list.size()));
-}
-
-std::unique_ptr<BlockPairView> BlockListView::Extract(size_t index) {
+std::unique_ptr<BlockPairView> BlockListView::ExtractChild(size_t index) {
 	UnregisterChild(child_list[index].child);
 	std::unique_ptr<BlockPairView> item(static_cast<alloc_ptr<BlockPairView>>(child_list[index].child.release()));
 	EraseChild(index, 1);
 	return item;
 }
 
-std::vector<std::unique_ptr<BlockPairView>> BlockListView::Extract(size_t begin, size_t end) {
-	std::vector<std::unique_ptr<BlockPairView>> pair_view_list; pair_view_list.reserve(end - begin);
-	for (size_t i = begin; i < end; ++i) {
+std::vector<std::unique_ptr<BlockPairView>> BlockListView::ExtractChild(size_t begin, size_t length) {
+	std::vector<std::unique_ptr<BlockPairView>> pair_view_list; pair_view_list.reserve(length);
+	for (size_t i = begin, end = begin + length; i < end; ++i) {
 		UnregisterChild(child_list[i].child);
 		pair_view_list.emplace_back(static_cast<alloc_ptr<BlockPairView>>(child_list[i].child.release()));
 	}
-	EraseChild(begin, end - begin);
-	ClearSelection();
+	EraseChild(begin, length);
 	return pair_view_list;
 }
 
+BlockPairView& BlockListView::Indent(size_t index) {
+	if (IsShiftDown()) {
+		return GetParent().IsRoot() ? GetChild(index) : GetParent().InsertAfterSelf(ExtractChild(index));
+	} else {
+		return index == 0 ? GetChild(0) : GetChild(index - 1).InsertBack(ExtractChild(index));
+	}
+}
+
+BlockPairView& BlockListView::MergeBefore(size_t index) {
+	return index == 0 ? GetParent().MergeFront() : MergeAfter(index - 1);
+}
+
+BlockPairView& BlockListView::MergeAfter(size_t index) {
+	if (index >= child_list.size() - 1) { return GetParent(); }
+	GetChild(index).MergeWith(GetChild(index + 1)); EraseChild(index + 1, 1);
+	return GetChild(index);
+}
+
+void BlockListView::MergeAtWith(size_t index, BlockListView& list_view) {
+	InsertChild(index, list_view.ExtractChild(0, list_view.child_list.size()));
+}
+
+void BlockListView::FinishDragDrop(BlockView& source) {
+	ClearSelectionFocus();
+	BlockListView& list_view = static_cast<BlockListView&>(source);
+	if (&list_view == this && drag_drop_caret_position > selection_range_begin) { drag_drop_caret_position -= selection_range_length; }
+	InsertChild(drag_drop_caret_position, list_view.ExtractChild(selection_range_begin, selection_range_length));
+	UpdateSelectionRegion(drag_drop_caret_position, selection_range_length);
+}
+
 void BlockListView::Delete() {
-	EraseChild(selection_range_begin, selection_range_end - selection_range_begin);
-	ClearSelection();
+	EraseChild(selection_range_begin, selection_range_length);
+	if (selection_range_begin >= child_list.size()) {
+		if (selection_range_begin == 0) {
+			GetParent().SetTextViewCaret(-1);
+		} else {
+			GetChild(selection_range_begin - 1).SetTextViewCaret(-1);
+		}
+	} else {
+		GetChild(selection_range_begin).SetTextViewCaret(0);
+	}
 }
 
 void BlockListView::Indent() {
 	if (IsShiftDown()) {
 		if (GetParent().IsRoot()) { return; }
-		GetParent().InsertAfterSelf(Extract(selection_range_begin, selection_range_end));
+		ClearSelectionFocus();
+		BlockListView& list_view = GetParent().InsertAfterSelf(ExtractChild(selection_range_begin, selection_range_length));
+		list_view.UpdateSelectionRegion(list_view.GetChildIndex(GetParent()) + 1, selection_range_length);
 	} else {
 		if (selection_range_begin == 0) { return; }
-		GetChild(selection_range_begin - 1).InsertBack(Extract(selection_range_begin, selection_range_end));
-	}
-}
-
-void BlockListView::Indent(size_t index) {
-	if (IsShiftDown()) {
-		if (GetParent().IsRoot()) { return; }
-		GetParent().InsertAfterSelf(Extract(index, index + 1));
-	} else {
-		if (index == 0) { return; }
-		GetChild(index - 1).InsertBack(Extract(index, index + 1));
+		ClearSelectionFocus();
+		BlockListView& list_view = GetChild(selection_range_begin - 1).InsertBack(ExtractChild(selection_range_begin, selection_range_length));
+		list_view.UpdateSelectionRegion(list_view.child_list.size() - selection_range_length, selection_range_length);
 	}
 }
 

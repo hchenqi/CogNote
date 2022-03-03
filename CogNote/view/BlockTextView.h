@@ -26,16 +26,6 @@ private:
 	WordBreakIterator word_break_iterator;
 private:
 	size_t GetCharacterLength(size_t text_position) { return GetUTF16CharLength(text[text_position]); }
-private:
-	void TextUpdated();
-private:
-	void SetText(std::wstring str) { text.assign(std::move(str)); TextUpdated(); }
-	void AppendText(std::wstring str) { text.append(str); TextUpdated(); }
-	void InsertText(size_t pos, wchar ch) { text.insert(pos, 1, ch); TextUpdated(); }
-	void InsertText(size_t pos, std::wstring str) { text.insert(pos, str); TextUpdated(); }
-	void ReplaceText(size_t begin, size_t length, wchar ch) { text.replace(begin, length, 1, ch); TextUpdated(); }
-	void ReplaceText(size_t begin, size_t length, std::wstring str) { text.replace(begin, length, str); TextUpdated(); }
-	void DeleteText(size_t begin, size_t length) { text.erase(begin, length); TextUpdated(); }
 
 	// layout
 private:
@@ -63,7 +53,7 @@ private:
 	// selection
 private:
 	void RedrawSelectionRegion();
-	void UpdateSelectionRegion(size_t begin, size_t end);
+	void UpdateSelectionRegion(size_t begin, size_t count);
 private:
 	void SelectWord();
 private:
@@ -79,27 +69,40 @@ private:
 private:
 	virtual void DoDragDrop(BlockView& source, Point point) override;
 	virtual void CancelDragDrop() override;
-	virtual void FinishDragDrop(BlockView& source) override;
+
+	// update
+private:
+	void TextUpdated();
+private:
+	void SetText(std::wstring str) { text.assign(std::move(str)); TextUpdated(); }
+	void AppendText(std::wstring str) { text.append(str); TextUpdated(); }
+	void InsertText(size_t pos, wchar ch) { text.insert(pos, 1, ch); TextUpdated(); }
+	void InsertText(size_t pos, std::wstring str) { text.insert(pos, str); TextUpdated(); }
+	void ReplaceText(size_t begin, size_t length, wchar ch) { text.replace(begin, length, 1, ch); TextUpdated(); }
+	void ReplaceText(size_t begin, size_t length, std::wstring str) { text.replace(begin, length, str); TextUpdated(); }
+	void DeleteText(size_t begin, size_t length) { text.erase(begin, length); TextUpdated(); }
+
+	// route
+public:
+	void MergeBackWith(BlockTextView& text_view);
 
 	// input
+private:
+	virtual void FinishDragDrop(BlockView& source) override;
 private:
 	void Insert(wchar ch);
 	void Insert(std::wstring str);
 	void Delete(bool is_backspace);
-	void Indent();
-private:
 	void Split();
-	void OnImeBegin();
-	void OnImeString();
-	void OnImeEnd();
-public:
-	void MergeBackWith(BlockTextView& text_view);
-
-	// clipboard
+	void Indent();
 private:
 	void Cut();
 	void Copy();
 	void Paste();
+private:
+	void OnImeBegin();
+	void OnImeString();
+	void OnImeEnd();
 
 	// message
 private:

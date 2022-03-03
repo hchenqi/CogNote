@@ -44,6 +44,7 @@ private:
 protected:
 	bool HasSelectionFocus() const;
 	void SetSelectionFocus();
+	void ClearSelectionFocus();
 private:
 	void BeginSelect() { BeginSelect(*this); BeginSelectSelf(); }
 	void BeginSelectSelf() { if (!IsRoot()) { parent->BeginSelect(*this); parent->BeginSelectSelf(); } }

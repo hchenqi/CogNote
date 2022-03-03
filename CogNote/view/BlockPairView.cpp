@@ -53,8 +53,6 @@ void BlockPairView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
 	DrawChild(second, GetRegionSecond(), figure_queue, draw_region);
 }
 
-void BlockPairView::SetTextViewCaret(size_t pos) { GetTextView().SetCaret(pos); }
-
 void BlockPairView::SetCaret(Point point) {
 	if (HitTestTextView(point)) {
 		SetChildCaret(GetTextView(), point);
@@ -62,6 +60,8 @@ void BlockPairView::SetCaret(Point point) {
 		SetChildCaret(GetListView(), ConvertToListViewPoint(point));
 	}
 }
+
+void BlockPairView::SetTextViewCaret(size_t pos) { GetTextView().SetCaret(pos); }
 
 void BlockPairView::BeginSelect(BlockView& child) { is_text_view_selection_begin = &child == &GetTextView(); }
 
@@ -107,57 +107,59 @@ void BlockPairView::DoDragDrop(BlockView& source, Point point) {
 	}
 }
 
-void BlockPairView::InsertFront(std::wstring text) {
-	GetListView().InsertFront(text);
+BlockTextView& BlockPairView::InsertFront(std::wstring text) {
+	return GetListView().InsertFront(text).GetTextView();
 }
 
-void BlockPairView::InsertBack(std::vector<std::unique_ptr<BlockPairView>> pair_view_list) {
-	GetListView().InsertBack(std::move(pair_view_list));
+BlockTextView& BlockPairView::InsertFront(std::vector<std::wstring> text_list) {
+	return GetListView().InsertFront(text_list).GetTextView();
 }
 
-void BlockPairView::InsertAfter(BlockView& child, std::wstring text) {
-	GetListView().InsertAfter(child, text);
+BlockPairView& BlockPairView::InsertBack(std::unique_ptr<BlockPairView> pair_view) {
+	return GetListView().InsertBack(std::move(pair_view));
 }
 
-void BlockPairView::InsertAfter(BlockView& child, std::vector<std::wstring> text, size_t caret_pos) {
-	GetListView().InsertAfter(child, text, caret_pos);
+BlockListView& BlockPairView::InsertBack(std::vector<std::unique_ptr<BlockPairView>> pair_view_list) {
+	return GetListView().InsertBack(std::move(pair_view_list));
 }
 
-void BlockPairView::InsertAfter(BlockView& child, std::vector<std::unique_ptr<BlockPairView>> pair_view_list) {
-	GetListView().InsertAfter(child, std::move(pair_view_list));
+BlockTextView& BlockPairView::InsertAfterSelf(std::wstring text) {
+	return GetParent().InsertAfter(*this, text).GetTextView();
 }
 
-void BlockPairView::InsertAfterSelf(std::wstring text) {
-	IsRoot() ? GetListView().InsertFront(text) : GetParent().InsertAfter(*this, text);
+BlockTextView& BlockPairView::InsertAfterSelf(std::vector<std::wstring> text_list) {
+	return GetParent().InsertAfter(*this, text_list).GetTextView();
 }
 
-void BlockPairView::InsertAfterSelf(std::vector<std::wstring> text, size_t caret_pos) {
-	IsRoot() ? GetListView().InsertFront(text, caret_pos) : GetParent().InsertAfter(*this, text, caret_pos);
+BlockPairView& BlockPairView::InsertAfterSelf(std::unique_ptr<BlockPairView> pair_view) {
+	return GetParent().InsertAfter(*this, std::move(pair_view));
 }
 
-void BlockPairView::InsertAfterSelf(std::vector<std::unique_ptr<BlockPairView>> pair_view_list) {
-	IsRoot() ? void() : GetParent().InsertAfter(*this, std::move(pair_view_list));
+BlockListView& BlockPairView::InsertAfterSelf(std::vector<std::unique_ptr<BlockPairView>> pair_view_list) {
+	return GetParent().InsertAfter(*this, std::move(pair_view_list));
 }
 
-void BlockPairView::MergeFront() {
-	std::unique_ptr<BlockPairView> front = GetListView().PopFront(); if (front == nullptr) { return; }
-	GetListView().MergeFrontWith(front->GetListView());
+BlockPairView& BlockPairView::MergeFront() {
+	std::unique_ptr<BlockPairView> front = GetListView().PopFront(); if (front == nullptr) { return *this; }
 	GetTextView().MergeBackWith(front->GetTextView());
+	GetListView().MergeFrontWith(front->GetListView());
+	return *this;
 }
 
-void BlockPairView::MergeWith(BlockPairView& pair_view) {
-	GetListView().MergeBackWith(pair_view.GetListView());
+BlockPairView& BlockPairView::MergeWith(BlockPairView& pair_view) {
 	GetTextView().MergeBackWith(pair_view.GetTextView());
+	GetListView().MergeBackWith(pair_view.GetListView());
+	return *this;
 }
 
-void BlockPairView::MergeBeforeSelf() {
-	IsRoot() ? void() : GetParent().MergeBefore(*this);
+BlockTextView& BlockPairView::MergeBeforeSelf() {
+	return (IsRoot() ? *this : GetParent().MergeBefore(*this)).GetTextView();
 }
 
-void BlockPairView::MergeAfterSelf() {
-	IsRoot() ? MergeFront() : GetParent().MergeAfter(*this);
+BlockTextView& BlockPairView::MergeAfterSelf() {
+	return (IsRoot() ? MergeFront() : GetParent().MergeAfter(*this)).GetTextView();
 }
 
-void BlockPairView::IndentSelf() {
-	IsRoot() ? void() : GetParent().Indent(*this);
+BlockTextView& BlockPairView::IndentSelf() {
+	return (IsRoot() ? *this : GetParent().Indent(*this)).GetTextView();
 }
