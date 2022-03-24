@@ -10,13 +10,20 @@ class BlockListView;
 class BlockPairView : public BlockView, public LayoutType<Assigned, Auto> {
 public:
 	BlockPairView(RootFrame& root);
-	BlockPairView(BlockView& parent, std::wstring text);
+	BlockPairView(BlockView& parent, std::wstring text = {});
 
 	// context
 public:
 	BlockView::IsRoot;
 private:
 	BlockListView& GetParent();
+
+	// data
+private:
+	using data_type = std::pair<block_ref<>, block_ref<>>;
+private:
+	virtual void Load() override;
+	virtual void Save() override;
 
 	// child
 private:
@@ -28,7 +35,7 @@ private:
 	ref_ptr<BlockTextView> text_view = nullptr;
 	ref_ptr<BlockListView> list_view = nullptr;
 private:
-	void Initialize(std::wstring text);
+	void Init(std::wstring text);
 private:
 	BlockTextView& GetTextView() { return *text_view; }
 	BlockListView& GetListView() { return *list_view; }

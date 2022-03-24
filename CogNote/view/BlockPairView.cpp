@@ -1,21 +1,28 @@
 #include "BlockPairView.h"
-
 #include "BlockTextView.h"
 #include "BlockListView.h"
 
 #include "WndDesign/frame/PaddingFrame.h"
 
 
-BlockPairView::BlockPairView(RootFrame& root) : BlockView(root) { Initialize(L"Root"); }
+BlockPairView::BlockPairView(RootFrame& root) : BlockView(root) { Init(L"Root"); }
 
-BlockPairView::BlockPairView(BlockView& parent, std::wstring text) : BlockView(parent) { Initialize(text); }
+BlockPairView::BlockPairView(BlockView& parent, std::wstring text) : BlockView(parent) { Init(text); }
 
 BlockListView& BlockPairView::GetParent() { return static_cast<BlockListView&>(BlockView::GetParent()); }
 
-void BlockPairView::Initialize(std::wstring text) {
-	first = text_view = new BlockTextView(*this, text);
-	second = new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new BlockListView(*this));
-	RegisterChild(this->first); RegisterChild(this->second);
+void BlockPairView::Load() {
+	data_type data = Read<data_type>();
+	LoadChild(*text_view, data.first); LoadChild(*list_view, data.second);
+}
+
+void BlockPairView::Save() {
+	Write<data_type>() = { GetChildRef(*text_view), GetChildRef(*list_view) };
+}
+
+void BlockPairView::Init(std::wstring text) {
+	first = text_view = new BlockTextView(*this, text); RegisterChild(this->first);
+	second = new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new BlockListView(*this)); RegisterChild(this->second);
 }
 
 Point BlockPairView::ConvertToListViewPoint(Point point) {

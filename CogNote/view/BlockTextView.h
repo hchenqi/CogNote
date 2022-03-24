@@ -17,6 +17,13 @@ public:
 private:
 	BlockPairView& GetParent();
 
+	// data
+private:
+	using data_type = std::wstring;
+private:
+	virtual void Load() override;
+	virtual void Save() override;
+
 	// text
 private:
 	using HitTestInfo = TextBlock::HitTestInfo;
@@ -26,6 +33,7 @@ private:
 	WordBreakIterator word_break_iterator;
 private:
 	size_t GetCharacterLength(size_t text_position) { return GetUTF16CharLength(text[text_position]); }
+	void TextUpdated();
 
 	// layout
 private:
@@ -70,17 +78,17 @@ private:
 	virtual void DoDragDrop(BlockView& source, Point point) override;
 	virtual void CancelDragDrop() override;
 
-	// update
+	// modify
 private:
-	void TextUpdated();
+	void TextModified() { DataModified(); TextUpdated(); }
 private:
-	void SetText(std::wstring str) { text.assign(std::move(str)); TextUpdated(); }
-	void AppendText(std::wstring str) { text.append(str); TextUpdated(); }
-	void InsertText(size_t pos, wchar ch) { text.insert(pos, 1, ch); TextUpdated(); }
-	void InsertText(size_t pos, std::wstring str) { text.insert(pos, str); TextUpdated(); }
-	void ReplaceText(size_t begin, size_t length, wchar ch) { text.replace(begin, length, 1, ch); TextUpdated(); }
-	void ReplaceText(size_t begin, size_t length, std::wstring str) { text.replace(begin, length, str); TextUpdated(); }
-	void DeleteText(size_t begin, size_t length) { text.erase(begin, length); TextUpdated(); }
+	void SetText(std::wstring str) { text.assign(std::move(str)); TextModified(); }
+	void AppendText(std::wstring str) { text.append(str); TextModified(); }
+	void InsertText(size_t pos, wchar ch) { text.insert(pos, 1, ch); TextModified(); }
+	void InsertText(size_t pos, std::wstring str) { text.insert(pos, str); TextModified(); }
+	void ReplaceText(size_t begin, size_t length, wchar ch) { text.replace(begin, length, 1, ch); TextModified(); }
+	void ReplaceText(size_t begin, size_t length, std::wstring str) { text.replace(begin, length, str); TextModified(); }
+	void DeleteText(size_t begin, size_t length) { text.erase(begin, length); TextModified(); }
 
 	// route
 public:

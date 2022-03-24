@@ -14,6 +14,13 @@ public:
 private:
 	BlockPairView& GetParent();
 
+	// data
+private:
+	using data_type = std::vector<block_ref<>>;
+private:
+	virtual void Load() override;
+	virtual void Save() override;
+
 	// child
 private:
 	using child_ptr = child_ptr<Assigned, Auto>;
@@ -88,7 +95,7 @@ private:
 	virtual void DoDragDrop(BlockView& source, Point point) override;
 	virtual void CancelDragDrop() override;
 
-	// update
+	// modify
 private:
 	void InsertChild(size_t index, child_ptr child);
 	void InsertChild(size_t index, std::vector<child_ptr> children);

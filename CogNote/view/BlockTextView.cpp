@@ -1,6 +1,7 @@
 #include "BlockTextView.h"
-
 #include "BlockPairView.h"
+
+#include "BlockStore/layout_traits_stl.h"
 
 #include "WndDesign/figure/shape.h"
 #include "WndDesign/message/ime.h"
@@ -62,6 +63,15 @@ BlockTextView::BlockTextView(BlockView& parent, std::wstring text) :
 
 BlockPairView& BlockTextView::GetParent() { return static_cast<BlockPairView&>(BlockView::GetParent()); }
 
+void BlockTextView::Load() { text = Read<data_type>(); TextUpdated(); }
+void BlockTextView::Save() { Write<data_type>() = text; }
+
+void BlockTextView::TextUpdated() {
+	text_block.SetText(style, text);
+	word_break_iterator.SetText(text);
+	SizeUpdated(UpdateLayout());
+	Redraw(region_infinite);
+}
 
 Size BlockTextView::UpdateLayout() {
 	text_block.UpdateSizeRef(Size(width, length_max));
@@ -136,10 +146,9 @@ bool BlockTextView::HitTestSelection(Point point) {
 void BlockTextView::BeginSelect(BlockView& child) { selection_begin = caret_position; }
 
 void BlockTextView::DoSelect(Point point) {
-	size_t begin = selection_begin, end = text_block.HitTestPoint(point).text_position; if (end < begin) { std::swap(begin, end); }
-	size_t length = end - begin;
-	if (selection_range_begin == begin && selection_range_length == length) { return; }
-	UpdateSelectionRegion(begin, length);
+	size_t begin = selection_begin, end = text_block.HitTestPoint(point).text_position;
+	if (end < begin) { std::swap(begin, end); }
+	UpdateSelectionRegion(begin, end - begin);
 }
 
 void BlockTextView::SelectMore() {
@@ -172,17 +181,8 @@ void BlockTextView::CancelDragDrop() {
 	RedrawDragDropCaretRegion(); drag_drop_caret_region = region_empty;
 }
 
-void BlockTextView::TextUpdated() {
-	text_block.SetText(style, text);
-	word_break_iterator.SetText(text);
-	SizeUpdated(UpdateLayout());
-	Redraw(region_infinite);
-}
-
 void BlockTextView::MergeBackWith(BlockTextView& text_view) {
-	size_t pos = text.size();
-	InsertText(pos, text_view.text);
-	SetCaret(pos);
+	InsertText(text.size(), text_view.text);
 }
 
 void BlockTextView::FinishDragDrop(BlockView& source) {

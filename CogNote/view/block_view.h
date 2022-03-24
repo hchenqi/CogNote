@@ -1,9 +1,11 @@
 #pragma once
 
 #include "WndDesign/window/wnd_traits.h"
+#include "BlockStore/block_ref.h"
 
 
 using namespace WndDesign;
+using BlockStore::block_ref;
 
 
 class RootFrame;
@@ -29,6 +31,19 @@ protected:
 
 	// data
 private:
+	block_ref<> block;
+protected:
+	template<class T> const T& Read() { return block.read<T>(); }
+	template<class T> T& Write() { return block.write<T>(); }
+protected:
+	void DataModified() {}
+	bool IsDataModified() {}
+protected:
+	void LoadChild(BlockView& child, block_ref<> block) { child.block = block; child.Load(); }
+	block_ref<> GetChildRef(BlockView& child) { return child.block; }
+private:
+	virtual void Load() {}
+	virtual void Save() {}
 
 	// caret
 protected:

@@ -1,6 +1,7 @@
 #include "BlockListView.h"
-
 #include "BlockPairView.h"
+
+#include "BlockStore/layout_traits_stl.h"
 
 #include "WndDesign/figure/shape.h"
 
@@ -33,12 +34,31 @@ END_NAMESPACE(Anonymous)
 
 BlockPairView& BlockListView::GetParent() { return static_cast<BlockPairView&>(BlockView::GetParent()); }
 
+void BlockListView::Load() {
+	data_type data = Read<data_type>();
+	child_list.clear(); child_list.reserve(data.size()); size_t index = 0;
+	for (auto& it : data) {
+		auto& info = child_list.emplace_back(new BlockPairView(*this));
+		LoadChild(GetChild(info.child), it);
+		RegisterChild(info.child); SetChildIndex(info.child, index++);
+		info.length = UpdateChildSizeRef(info.child, Size(size.width, length_min)).height;
+	}
+	UpdateLayout(0);
+}
+
+void BlockListView::Save() {
+	data_type data; data.reserve(child_list.size());
+	for (auto& it : child_list) { data.push_back(GetChildRef(GetChild(it.child))); }
+	Write<data_type>() = std::move(data);
+}
+
 BlockPairView& BlockListView::GetChild(child_ptr& child) { return static_cast<BlockPairView&>(*child); }
 
 void BlockListView::UpdateIndex(size_t begin) {
 	for (size_t index = begin; index < child_list.size(); ++index) {
 		SetChildIndex(child_list[index].child, index);
 	}
+	DataModified();
 }
 
 BlockListView::child_iter BlockListView::HitTestItem(float offset) {
