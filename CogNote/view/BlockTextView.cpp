@@ -63,8 +63,9 @@ BlockTextView::BlockTextView(BlockView& parent, std::wstring text) :
 
 BlockPairView& BlockTextView::GetParent() { return static_cast<BlockPairView&>(BlockView::GetParent()); }
 
-void BlockTextView::Load() { text = Read<data_type>(); TextUpdated(); }
-void BlockTextView::Save() { Write<data_type>() = text; }
+void BlockTextView::Load() { block.read(text); TextUpdated(); }
+
+void BlockTextView::Save() { block.write(text); }
 
 void BlockTextView::TextUpdated() {
 	text_block.SetText(style, text);

@@ -1,10 +1,13 @@
 #include "RootFrame.h"
-
 #include "BlockPairView.h"
 
-#include "WndDesign/message/ime.h"
+#include "BlockStore/block_manager.h"
 
+#include "WndDesign/message/ime.h"
 #include "message/mouse_helper.h"
+
+
+using BlockStore::block_manager;
 
 
 BEGIN_NAMESPACE(Anonymous)
@@ -23,6 +26,8 @@ END_NAMESPACE(Anonymous)
 RootFrame::RootFrame() : ScrollFrame(new BlockPairView(*this)) {
 	cursor = Cursor::Text;
 	ime.Enable(*this);
+	block_manager.open("CogNote.db");
+	BlockView::LoadChild(GetChild(), block_manager.get_root());
 }
 
 BlockView& RootFrame::GetChild() { return static_cast<BlockView&>(*child); }

@@ -30,17 +30,14 @@ protected:
 	void SetChildParent(BlockView& child) { child.parent = this; }
 
 	// data
-private:
-	block_ref<> block;
 protected:
-	template<class T> const T& Read() { return block.read<T>(); }
-	template<class T> T& Write() { return block.write<T>(); }
+	block_ref block;
 protected:
 	void DataModified() {}
 	bool IsDataModified() {}
 protected:
-	void LoadChild(BlockView& child, block_ref<> block) { child.block = block; child.Load(); }
-	block_ref<> GetChildRef(BlockView& child) { return child.block; }
+	static void LoadChild(BlockView& child, block_ref block) { child.block = block; child.Load(); }
+	static block_ref GetChildRef(BlockView& child) { return child.block; }
 private:
 	virtual void Load() {}
 	virtual void Save() {}
@@ -50,7 +47,7 @@ protected:
 	bool HasCaretFocus() const;
 	void SetCaretFocus();
 protected:
-	void SetChildCaret(BlockView& child, Point point) { child.SetCaret(point); }
+	static void SetChildCaret(BlockView& child, Point point) { child.SetCaret(point); }
 private:
 	virtual void SetCaret(Point point) {}
 	virtual void ClearCaret() {}
@@ -64,7 +61,7 @@ private:
 	void BeginSelect() { BeginSelect(*this); BeginSelectSelf(); }
 	void BeginSelectSelf() { if (!IsRoot()) { parent->BeginSelect(*this); parent->BeginSelectSelf(); } }
 protected:
-	void DoChildSelect(BlockView& child, Point point) { child.DoSelect(point); };
+	static void DoChildSelect(BlockView& child, Point point) { child.DoSelect(point); };
 	void SelectSelf() { if (!IsRoot()) { parent->SelectChild(*this); } }
 private:
 	virtual bool HitTestSelection(Point point) { return false; }
@@ -81,7 +78,7 @@ protected:
 	void SetDragDropFocus();
 	void ClearDragDropFocus();
 protected:
-	void DoChildDragDrop(BlockView& child, BlockView& source, Point point) { child.DoDragDrop(source, point); };
+	static void DoChildDragDrop(BlockView& child, BlockView& source, Point point) { child.DoDragDrop(source, point); };
 private:
 	virtual void DoDragDrop(BlockView& source, Point point) {}
 	virtual void CancelDragDrop() {}

@@ -16,8 +16,6 @@ private:
 
 	// data
 private:
-	using data_type = std::vector<block_ref<>>;
-private:
 	virtual void Load() override;
 	virtual void Save() override;
 

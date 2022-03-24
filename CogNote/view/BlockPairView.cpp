@@ -12,12 +12,12 @@ BlockPairView::BlockPairView(BlockView& parent, std::wstring text) : BlockView(p
 BlockListView& BlockPairView::GetParent() { return static_cast<BlockListView&>(BlockView::GetParent()); }
 
 void BlockPairView::Load() {
-	data_type data = Read<data_type>();
+	std::pair<block_ref, block_ref> data; block.read(data);
 	LoadChild(*text_view, data.first); LoadChild(*list_view, data.second);
 }
 
 void BlockPairView::Save() {
-	Write<data_type>() = { GetChildRef(*text_view), GetChildRef(*list_view) };
+	block.write(std::make_pair(GetChildRef(*text_view), GetChildRef(*list_view)));
 }
 
 void BlockPairView::Init(std::wstring text) {

@@ -35,7 +35,7 @@ END_NAMESPACE(Anonymous)
 BlockPairView& BlockListView::GetParent() { return static_cast<BlockPairView&>(BlockView::GetParent()); }
 
 void BlockListView::Load() {
-	data_type data = Read<data_type>();
+	std::vector<block_ref> data; block.read(data);
 	child_list.clear(); child_list.reserve(data.size()); size_t index = 0;
 	for (auto& it : data) {
 		auto& info = child_list.emplace_back(new BlockPairView(*this));
@@ -47,9 +47,9 @@ void BlockListView::Load() {
 }
 
 void BlockListView::Save() {
-	data_type data; data.reserve(child_list.size());
+	std::vector<block_ref> data; data.reserve(child_list.size());
 	for (auto& it : child_list) { data.push_back(GetChildRef(GetChild(it.child))); }
-	Write<data_type>() = std::move(data);
+	block.write(data);
 }
 
 BlockPairView& BlockListView::GetChild(child_ptr& child) { return static_cast<BlockPairView&>(*child); }

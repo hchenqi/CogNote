@@ -20,8 +20,6 @@ private:
 
 	// data
 private:
-	using data_type = std::pair<block_ref<>, block_ref<>>;
-private:
 	virtual void Load() override;
 	virtual void Save() override;
 
