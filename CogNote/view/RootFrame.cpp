@@ -30,6 +30,13 @@ RootFrame::RootFrame() : ScrollFrame(new BlockPairView(*this)) {
 	BlockView::LoadChild(GetChild(), block_manager.get_root());
 }
 
+RootFrame::~RootFrame() { Save(); block_manager.close(); }
+
+void RootFrame::Save() {
+	BlockView::SaveAll();
+	block_manager.set_root(BlockView::GetChildRef(GetChild()));
+}
+
 BlockView& RootFrame::GetChild() { return static_cast<BlockView&>(*child); }
 
 Point RootFrame::ConvertToDescendentPoint(Point point, BlockView& block_view) {
@@ -154,6 +161,7 @@ void RootFrame::OnKeyMsg(KeyMsg msg) {
 		case Key::Shift: is_shift_down = true; break;
 
 		case CharKey('A'): if (IsCtrlDown()) { SelectMore(); } break;
+		case CharKey('S'): if (IsCtrlDown()) { Save(); } break;
 		}
 		break;
 	case KeyMsg::KeyUp:

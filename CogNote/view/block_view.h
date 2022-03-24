@@ -18,6 +18,7 @@ private:
 public:
 	BlockView(RootFrame& root) : root(root), parent(nullptr) {}
 	BlockView(BlockView& parent) : root(parent.root), parent(&parent) {}
+	~BlockView() { ResetModified(); }
 
 	// context
 private:
@@ -32,12 +33,16 @@ protected:
 	// data
 protected:
 	block_ref block;
+private:
+	bool modified = false;
+	void ResetModified();
 protected:
-	void DataModified() {}
-	bool IsDataModified() {}
-protected:
-	static void LoadChild(BlockView& child, block_ref block) { child.block = block; child.Load(); }
-	static block_ref GetChildRef(BlockView& child) { return child.block; }
+	void DataModified();
+	static void LoadChild(BlockView& child, block_ref block) { child.ResetModified(); child.block = block; child.Load(); }
+	static block_ref GetChildRef(BlockView& child) { if (child.block.empty()) { child.DoSave(); } return child.block; }
+private:
+	static void SaveAll();
+	void DoSave() { ResetModified(); Save(); }
 private:
 	virtual void Load() {}
 	virtual void Save() {}

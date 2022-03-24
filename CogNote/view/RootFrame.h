@@ -12,6 +12,11 @@ class BlockView;
 class RootFrame : public ScrollFrame<Vertical> {
 public:
 	RootFrame();
+	~RootFrame();
+
+	// data
+private:
+	void Save();
 
 	// child
 private:
