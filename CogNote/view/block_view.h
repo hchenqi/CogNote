@@ -18,7 +18,7 @@ private:
 public:
 	BlockView(RootFrame& root) : root(root), parent(nullptr) {}
 	BlockView(BlockView& parent) : root(parent.root), parent(&parent) {}
-	~BlockView() { ResetModified(); }
+	~BlockView();
 
 	// context
 private:

@@ -29,6 +29,10 @@ private:
 private:
 	virtual ref_ptr<WndObject> HitTest(Point& point) override { return this; }
 
+	// focus
+public:
+	void CheckFocus(BlockView& block_view);
+
 	// caret
 private:
 	ref_ptr<BlockView> caret_focus = nullptr;

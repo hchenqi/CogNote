@@ -11,6 +11,8 @@ std::unordered_set<ref_ptr<BlockView>> modified_set;
 END_NAMESPACE(Anonymous)
 
 
+BlockView::~BlockView() { root.CheckFocus(*this); ResetModified(); }
+
 void BlockView::ResetModified() { if (modified == true) { modified = false; modified_set.erase(this); } }
 void BlockView::DataModified() { if (modified == false) { modified = true; modified_set.insert(this); } }
 void BlockView::SaveAll() { while (!modified_set.empty()) { (*modified_set.begin())->DoSave(); } }

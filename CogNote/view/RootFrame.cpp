@@ -43,6 +43,12 @@ Point RootFrame::ConvertToDescendentPoint(Point point, BlockView& block_view) {
 	return point_zero + (point - ConvertDescendentPoint(block_view, point_zero));
 }
 
+void RootFrame::CheckFocus(BlockView& block_view) {
+	if (caret_focus == &block_view) { caret_focus = nullptr; }
+	if (selection_focus == &block_view) { selection_focus = nullptr; }
+	if (drag_drop_focus == &block_view) { drag_drop_focus = nullptr; }
+}
+
 void RootFrame::SetCaretFocus(BlockView& block_view) {
 	if (caret_focus == &block_view) { return; }
 	ClearCaret(); ClearSelection();
