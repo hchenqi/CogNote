@@ -1,5 +1,4 @@
 #include "BlockListView.h"
-#include "BlockPairView.h"
 
 #include "BlockStore/layout_traits_stl.h"
 
@@ -128,9 +127,16 @@ void BlockListView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
 }
 
 void BlockListView::SetCaret(Point point) {
-	if (child_list.empty()) { return GetParent().SetTextViewCaret(-1); }
-	auto it = HitTestItem(point.y); point.y -= it->offset;
-	SetChildCaret(GetChild(it->child), point);
+	if (child_list.empty()) {
+		if (IsRoot()) {
+			InsertFront(L"").SetTextViewCaret(0);
+		} else {
+			GetParent().SetTextViewCaret(-1);
+		}
+	} else {
+		auto it = HitTestItem(point.y); point.y -= it->offset;
+		SetChildCaret(GetChild(it->child), point);
+	}
 }
 
 void BlockListView::RedrawSelectionRegion() { Redraw(selection_region); }
@@ -278,19 +284,27 @@ std::vector<std::unique_ptr<BlockPairView>> BlockListView::ExtractChild(size_t b
 
 BlockPairView& BlockListView::Indent(size_t index) {
 	if (IsShiftDown()) {
-		return GetParent().IsRoot() ? GetChild(index) : GetParent().InsertAfterSelf(ExtractChild(index));
+		return IsRoot() ? GetChild(index) : GetParent().InsertAfterSelf(ExtractChild(index));
 	} else {
 		return index == 0 ? GetChild(0) : GetChild(index - 1).InsertBack(ExtractChild(index));
 	}
 }
 
 BlockPairView& BlockListView::MergeBefore(size_t index) {
-	return index == 0 ? GetParent().MergeFront() : MergeAfter(index - 1);
+	if (index == 0) {
+		return IsRoot() ? GetChild(0) : GetParent().MergeFront();
+	} else {
+		return MergeAfter(index - 1);
+	}
 }
 
 BlockPairView& BlockListView::MergeAfter(size_t index) {
-	if (index >= child_list.size() - 1) { return GetParent(); }
-	GetChild(index).MergeWith(GetChild(index + 1)); EraseChild(index + 1, 1);
+	if (index < child_list.size() - 1) {
+		GetChild(index).MergeWith(GetChild(index + 1));
+		EraseChild(index + 1, 1);
+	} else {
+		GetChild(index).MergeFront();
+	}
 	return GetChild(index);
 }
 
@@ -307,10 +321,11 @@ void BlockListView::FinishDragDrop(BlockView& source) {
 }
 
 void BlockListView::Delete() {
+	ClearSelectionFocus();
 	EraseChild(selection_range_begin, selection_range_length);
 	if (selection_range_begin >= child_list.size()) {
 		if (selection_range_begin == 0) {
-			GetParent().SetTextViewCaret(-1);
+			SetCaret(point_zero);
 		} else {
 			GetChild(selection_range_begin - 1).SetTextViewCaret(-1);
 		}
@@ -321,7 +336,7 @@ void BlockListView::Delete() {
 
 void BlockListView::Indent() {
 	if (IsShiftDown()) {
-		if (GetParent().IsRoot()) { return; }
+		if (IsRoot()) { return; }
 		ClearSelectionFocus();
 		BlockListView& list_view = GetParent().InsertAfterSelf(ExtractChild(selection_range_begin, selection_range_length));
 		list_view.UpdateSelectionRegion(list_view.GetChildIndex(GetParent()) + 1, selection_range_length);

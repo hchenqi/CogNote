@@ -1,9 +1,11 @@
 #include "RootFrame.h"
-#include "BlockPairView.h"
+#include "BlockListView.h"
 
 #include "BlockStore/block_manager.h"
 
+#include "WndDesign/frame/PaddingFrame.h"
 #include "WndDesign/message/ime.h"
+
 #include "message/mouse_helper.h"
 
 
@@ -23,7 +25,7 @@ MouseHelper mouse_helper;
 END_NAMESPACE(Anonymous)
 
 
-RootFrame::RootFrame() : ScrollFrame(new BlockPairView(*this)) {
+RootFrame::RootFrame() : ScrollFrame(new PaddingFrame(Padding(50, 30), block_view = new BlockListView(*this))) {
 	cursor = Cursor::Text;
 	ime.Enable(*this);
 	block_manager.open("CogNote.db");
@@ -37,7 +39,7 @@ void RootFrame::Save() {
 	block_manager.set_root(BlockView::GetChildRef(GetChild()));
 }
 
-BlockView& RootFrame::GetChild() { return static_cast<BlockView&>(*child); }
+BlockView& RootFrame::GetChild() { return *block_view; }
 
 Point RootFrame::ConvertToDescendentPoint(Point point, BlockView& block_view) {
 	return point_zero + (point - ConvertDescendentPoint(block_view, point_zero));

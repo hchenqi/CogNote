@@ -5,9 +5,12 @@
 #include "WndDesign/frame/PaddingFrame.h"
 
 
-BlockPairView::BlockPairView(RootFrame& root) : BlockView(root) { Init(L"Root"); }
-
-BlockPairView::BlockPairView(BlockView& parent, std::wstring text) : BlockView(parent) { Init(text); }
+BlockPairView::BlockPairView(BlockView& parent, std::wstring text) :
+	BlockView(parent),
+	first(text_view = new BlockTextView(*this, text)),
+	second(new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new BlockListView(*this))) {
+	RegisterChild(first); RegisterChild(second);
+}
 
 BlockListView& BlockPairView::GetParent() { return static_cast<BlockListView&>(BlockView::GetParent()); }
 
@@ -18,11 +21,6 @@ void BlockPairView::Load() {
 
 void BlockPairView::Save() {
 	block.write(std::make_pair(GetChildRef(*text_view), GetChildRef(*list_view)));
-}
-
-void BlockPairView::Init(std::wstring text) {
-	first = text_view = new BlockTextView(*this, text); RegisterChild(this->first);
-	second = new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new BlockListView(*this)); RegisterChild(this->second);
 }
 
 Point BlockPairView::ConvertToListViewPoint(Point point) {
@@ -73,25 +71,17 @@ void BlockPairView::SetTextViewCaret(size_t pos) { GetTextView().SetCaret(pos); 
 void BlockPairView::BeginSelect(BlockView& child) { is_text_view_selection_begin = &child == &GetTextView(); }
 
 void BlockPairView::DoSelect(Point point) {
-	if (IsRoot()) {
-		if (is_text_view_selection_begin) {
+	if (is_text_view_selection_begin) {
+		if (HitTestTextView(point)) {
 			DoChildSelect(GetTextView(), point);
 		} else {
-			DoChildSelect(GetListView(), ConvertToListViewPoint(point));
+			SelectSelf();
 		}
 	} else {
-		if (is_text_view_selection_begin) {
-			if (HitTestTextView(point)) {
-				DoChildSelect(GetTextView(), point);
-			} else {
-				SelectSelf();
-			}
+		if (HitTestTextView(point)) {
+			SelectSelf();
 		} else {
-			if (HitTestTextView(point)) {
-				SelectSelf();
-			} else {
-				DoChildSelect(GetListView(), ConvertToListViewPoint(point));
-			}
+			DoChildSelect(GetListView(), ConvertToListViewPoint(point));
 		}
 	}
 }
@@ -106,7 +96,7 @@ void BlockPairView::DoDragDrop(BlockView& source, Point point) {
 			DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
 		}
 	} else {
-		if (point.y < GetRegionFirst().Center().y && !IsRoot()) {
+		if (point.y < GetRegionFirst().Center().y) {
 			GetParent().DoDragDropBefore(*this);
 		} else {
 			DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
@@ -147,9 +137,10 @@ BlockListView& BlockPairView::InsertAfterSelf(std::vector<std::unique_ptr<BlockP
 }
 
 BlockPairView& BlockPairView::MergeFront() {
-	std::unique_ptr<BlockPairView> front = GetListView().PopFront(); if (front == nullptr) { return *this; }
-	GetTextView().MergeBackWith(front->GetTextView());
-	GetListView().MergeFrontWith(front->GetListView());
+	if (std::unique_ptr<BlockPairView> front = GetListView().PopFront(); front != nullptr) {
+		GetTextView().MergeBackWith(front->GetTextView());
+		GetListView().MergeFrontWith(front->GetListView());
+	}
 	return *this;
 }
 
@@ -160,13 +151,13 @@ BlockPairView& BlockPairView::MergeWith(BlockPairView& pair_view) {
 }
 
 BlockTextView& BlockPairView::MergeBeforeSelf() {
-	return (IsRoot() ? *this : GetParent().MergeBefore(*this)).GetTextView();
+	return GetParent().MergeBefore(*this).GetTextView();
 }
 
 BlockTextView& BlockPairView::MergeAfterSelf() {
-	return (IsRoot() ? MergeFront() : GetParent().MergeAfter(*this)).GetTextView();
+	return GetParent().MergeAfter(*this).GetTextView();
 }
 
 BlockTextView& BlockPairView::IndentSelf() {
-	return (IsRoot() ? *this : GetParent().Indent(*this)).GetTextView();
+	return GetParent().Indent(*this).GetTextView();
 }

@@ -7,6 +7,7 @@ using namespace WndDesign;
 
 
 class BlockView;
+class BlockListView;
 
 
 class RootFrame : public ScrollFrame<Vertical> {
@@ -20,12 +21,14 @@ private:
 
 	// child
 private:
+	ref_ptr<BlockListView> block_view;
+private:
 	BlockView& GetChild();
 
 	// layout
 private:
-	Point ConvertToChildPoint(Point point) { return point - GetChildOffset(); }
 	Point ConvertToDescendentPoint(Point point, BlockView& block_view);
+	Point ConvertToChildPoint(Point point) { return ConvertToDescendentPoint(point, GetChild()); }
 private:
 	virtual ref_ptr<WndObject> HitTest(Point& point) override { return this; }
 

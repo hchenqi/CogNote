@@ -1,16 +1,16 @@
 #pragma once
 
-#include "block_view.h"
-
-
-class BlockPairView;
+#include "BlockPairView.h"
 
 
 class BlockListView : public BlockView, public LayoutType<Assigned, Auto> {
 public:
+	BlockListView(RootFrame& root) : BlockView(root) {}
 	BlockListView(BlockView& parent) : BlockView(parent) {}
 
-	// parent
+	// context
+public:
+	BlockView::IsRoot;
 private:
 	BlockPairView& GetParent();
 

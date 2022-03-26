@@ -9,12 +9,9 @@ class BlockListView;
 
 class BlockPairView : public BlockView, public LayoutType<Assigned, Auto> {
 public:
-	BlockPairView(RootFrame& root);
 	BlockPairView(BlockView& parent, std::wstring text = {});
 
 	// context
-public:
-	BlockView::IsRoot;
 private:
 	BlockListView& GetParent();
 
@@ -30,10 +27,8 @@ private:
 	child_ptr first;
 	child_ptr second;
 private:
-	ref_ptr<BlockTextView> text_view = nullptr;
-	ref_ptr<BlockListView> list_view = nullptr;
-private:
-	void Init(std::wstring text);
+	ref_ptr<BlockTextView> text_view;
+	ref_ptr<BlockListView> list_view;
 private:
 	BlockTextView& GetTextView() { return *text_view; }
 	BlockListView& GetListView() { return *list_view; }

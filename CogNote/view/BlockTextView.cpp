@@ -261,7 +261,7 @@ void BlockTextView::Split() {
 		str = text.substr(caret_position);
 		DeleteText(caret_position, -1);
 	}
-	(IsCtrlDown() || GetParent().IsRoot() ? GetParent().InsertFront(str) : GetParent().InsertAfterSelf(str)).SetCaret(0);
+	(IsCtrlDown()? GetParent().InsertFront(str) : GetParent().InsertAfterSelf(str)).SetCaret(0);
 }
 
 void BlockTextView::Indent() {
@@ -295,7 +295,7 @@ void BlockTextView::Paste() {
 			ReplaceText(caret_position, -1, text_list.front());
 		}
 		text_list.erase(text_list.begin()); text_list.back().insert(0, str);
-		(GetParent().IsRoot() ? GetParent().InsertFront(text_list) : GetParent().InsertAfterSelf(text_list)).SetCaret(str.size());
+		GetParent().InsertAfterSelf(text_list).SetCaret(str.size());
 	}
 }
 
