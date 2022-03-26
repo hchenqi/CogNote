@@ -11,9 +11,10 @@ struct MainFrameStyle : public TitleBarFrame::Style {
 		width.normal(800px).max(100pct);
 		height.normal(500px).max(100pct);
 		position.setHorizontalCenter().setVerticalCenter();
-		border.width(4px).color(Color::CadetBlue);
-		title.assign(L"Test");
-		title_format.font.size(20px);
+		border.width(4px).radius(10px).color(Color::CadetBlue);
+		title.assign(L"CogNote");
+		title_format.font.size(16px);
+		title_format.paragraph.line_height(130pct);
 	}
 };
 
