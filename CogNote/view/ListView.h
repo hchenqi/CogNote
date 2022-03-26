@@ -121,7 +121,7 @@ public:
 	ListView& InsertAfter(PairView& child, std::vector<std::unique_ptr<PairView>> pair_view_list);  // list indent shift
 public:
 	PairView& InsertAfter(PairView& child, std::wstring text);  // text split
-	PairView& InsertFront(std::wstring text);  // text split ctrl
+	PairView& InsertFront(std::wstring text);  // text split
 	PairView& IndentChild(PairView& child);  // text indent
 	PairView& IndentChildShift(PairView& child);  // text indent shift
 	PairView& MergeBeforeChild(PairView& child);  // text backspace

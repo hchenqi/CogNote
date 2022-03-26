@@ -130,12 +130,12 @@ PairView& PairView::IndentAfterSelf() {
 	return GetParent().IndentAfterChild(*this);
 }
 
-TextView& PairView::InsertAfterSelf(std::wstring text) {
-	return GetParent().InsertAfter(*this, text).GetTextView();
-}
-
-TextView& PairView::InsertFront(std::wstring text) {
-	return GetListView().InsertFront(text).GetTextView();
+TextView& PairView::InsertAfterSelfOrFront(std::wstring text, bool ctrl) {
+	if (GetListView().IsEmpty() ^ ctrl) {
+		return GetParent().InsertAfter(*this, text).GetTextView();
+	} else {
+		return GetListView().InsertFront(text).GetTextView();
+	}
 }
 
 TextView& PairView::IndentSelf() {

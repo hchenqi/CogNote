@@ -235,7 +235,7 @@ void TextView::Split() {
 		str = text.substr(caret_position);
 		DeleteText(caret_position, -1);
 	}
-	(IsCtrlDown() ? GetParent().InsertFront(str) : GetParent().InsertAfterSelf(str)).SetCaret(0);
+	GetParent().InsertAfterSelfOrFront(str, IsCtrlDown()).SetCaret(0);
 }
 
 void TextView::Indent() {

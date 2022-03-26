@@ -82,8 +82,7 @@ public:
 	PairView& InsertBackOrMergeWith(std::unique_ptr<PairView> pair_view);  // text backspace
 	PairView& IndentAfterSelf();  // text delete
 public:
-	TextView& InsertAfterSelf(std::wstring text);  // text split
-	TextView& InsertFront(std::wstring text);  // text split ctrl
+	TextView& InsertAfterSelfOrFront(std::wstring text, bool ctrl);  // text split
 	TextView& IndentSelf();  // text indent
 	TextView& IndentSelfShift();  // text indent shift
 	TextView& MergeBeforeSelf();  // text backspace
