@@ -7,7 +7,7 @@ using namespace WndDesign;
 
 
 class BlockView;
-class BlockListView;
+class ListView;
 
 
 class RootFrame : public ScrollFrame<Vertical> {
@@ -21,7 +21,7 @@ private:
 
 	// child
 private:
-	ref_ptr<BlockListView> block_view;
+	ref_ptr<ListView> block_view;
 private:
 	BlockView& GetChild();
 

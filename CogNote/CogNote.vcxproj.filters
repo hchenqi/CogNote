@@ -24,16 +24,16 @@
     <ClCompile Include="view\RootFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="view\BlockTextView.cpp">
+    <ClCompile Include="view\TextView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="common\string_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="view\BlockListView.cpp">
+    <ClCompile Include="view\ListView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="view\BlockPairView.cpp">
+    <ClCompile Include="view\PairView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,7 +44,7 @@
     <ClInclude Include="view\RootFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="view\BlockTextView.h">
+    <ClInclude Include="view\TextView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="view\message\mouse_helper.h">
@@ -53,10 +53,10 @@
     <ClInclude Include="common\string_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="view\BlockListView.h">
+    <ClInclude Include="view\ListView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="view\BlockPairView.h">
+    <ClInclude Include="view\PairView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

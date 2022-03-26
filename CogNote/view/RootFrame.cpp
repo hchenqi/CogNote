@@ -1,5 +1,5 @@
 #include "RootFrame.h"
-#include "BlockListView.h"
+#include "ListView.h"
 
 #include "BlockStore/block_manager.h"
 
@@ -25,7 +25,7 @@ MouseHelper mouse_helper;
 END_NAMESPACE(Anonymous)
 
 
-RootFrame::RootFrame() : ScrollFrame(new PaddingFrame(Padding(50, 30), block_view = new BlockListView(*this))) {
+RootFrame::RootFrame() : ScrollFrame(new PaddingFrame(Padding(50, 30), block_view = new ListView(*this))) {
 	cursor = Cursor::Text;
 	ime.Enable(*this);
 	block_manager.open("CogNote.db");

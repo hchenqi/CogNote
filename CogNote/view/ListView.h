@@ -1,18 +1,21 @@
 #pragma once
 
-#include "BlockPairView.h"
+#include "block_view.h"
 
 
-class BlockListView : public BlockView, public LayoutType<Assigned, Auto> {
+class PairView;
+
+
+class ListView : public BlockView, public LayoutType<Assigned, Auto> {
 public:
-	BlockListView(RootFrame& root) : BlockView(root) {}
-	BlockListView(BlockView& parent) : BlockView(parent) {}
+	ListView(RootFrame& root) : BlockView(root) {}
+	ListView(BlockView& parent) : BlockView(parent) {}
 
 	// context
 public:
 	BlockView::IsRoot;
 private:
-	BlockPairView& GetParent();
+	PairView& GetParent();
 
 	// data
 private:
@@ -37,9 +40,11 @@ private:
 	std::vector<ChildInfo> child_list;
 private:
 	using child_iter = std::vector<ChildInfo>::iterator;
+public:
+	bool IsEmpty() const { return child_list.empty(); }
 private:
-	BlockPairView& GetChild(child_ptr& child);
-	BlockPairView& GetChild(size_t index) { return GetChild(child_list[index].child); }
+	PairView& GetChild(child_ptr& child);
+	PairView& GetChild(size_t index) { return GetChild(child_list[index].child); }
 private:
 	void SetChildIndex(WndObject& child, size_t index) { WndObject::SetChildData<size_t>(child, index); }
 	size_t GetChildIndex(WndObject& child) const { return WndObject::GetChildData<size_t>(child); }
@@ -99,34 +104,30 @@ private:
 	void InsertChild(size_t index, std::vector<child_ptr> children);
 	void EraseChild(size_t begin, size_t length);
 private:
-	BlockPairView& InsertChild(size_t index, std::wstring text);
-	BlockPairView& InsertChild(size_t index, std::vector<std::wstring> text_list);
-	BlockPairView& InsertChild(size_t index, std::unique_ptr<BlockPairView> pair_view);
-	void InsertChild(size_t index, std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
-	std::unique_ptr<BlockPairView> ExtractChild(size_t index);
-	std::vector<std::unique_ptr<BlockPairView>> ExtractChild(size_t begin, size_t length);
+	PairView& InsertChild(size_t index, std::wstring text);
+	PairView& InsertChild(size_t index, std::vector<std::wstring> text_list);
+	PairView& InsertChild(size_t index, std::unique_ptr<PairView> pair_view);
+	void InsertChild(size_t index, std::vector<std::unique_ptr<PairView>> pair_view_list);
+	std::unique_ptr<PairView> ExtractChild(size_t index);
+	std::vector<std::unique_ptr<PairView>> ExtractChild(size_t begin, size_t length);
 
 	// route
-private:
-	BlockPairView& Indent(size_t index);
-	BlockPairView& MergeBefore(size_t index);
-	BlockPairView& MergeAfter(size_t index);
-	void MergeAtWith(size_t index, BlockListView& list_view);
 public:
-	BlockPairView& Indent(BlockView& child) { return Indent(GetChildIndex(child)); }
-	BlockPairView& InsertFront(std::wstring text) { return InsertChild(0, text); }
-	BlockPairView& InsertFront(std::vector<std::wstring> text_list) { return InsertChild(0, text_list); }
-	BlockPairView& InsertBack(std::unique_ptr<BlockPairView> pair_view) { return InsertChild(child_list.size(), std::move(pair_view)); }
-	BlockListView& InsertBack(std::vector<std::unique_ptr<BlockPairView>> pair_view_list) { InsertChild(child_list.size(), std::move(pair_view_list)); return *this; }
-	BlockPairView& InsertAfter(BlockView& child, std::wstring text) { return InsertChild(GetChildIndex(child) + 1, text); }
-	BlockPairView& InsertAfter(BlockView& child, std::vector<std::wstring> text_list) { return InsertChild(GetChildIndex(child) + 1, text_list); }
-	BlockPairView& InsertAfter(BlockView& child, std::unique_ptr<BlockPairView> pair_view) { return InsertChild(GetChildIndex(child) + 1, std::move(pair_view)); }
-	BlockListView& InsertAfter(BlockView& child, std::vector<std::unique_ptr<BlockPairView>> pair_view_list) { InsertChild(GetChildIndex(child) + 1, std::move(pair_view_list)); return *this; }
-	BlockPairView& MergeBefore(BlockView& child) { return MergeBefore(GetChildIndex(child)); }
-	BlockPairView& MergeAfter(BlockView& child) { return MergeAfter(GetChildIndex(child)); }
-	void MergeFrontWith(BlockListView& list_view) { MergeAtWith(0, list_view); }
-	void MergeBackWith(BlockListView& list_view) { MergeAtWith(child_list.size(), list_view); }
-	std::unique_ptr<BlockPairView> PopFront() { return child_list.empty() ? nullptr : ExtractChild(0); }
+	PairView& InsertBack(std::unique_ptr<PairView> pair_view);  // text indent
+	PairView& InsertAfter(PairView& child, std::unique_ptr<PairView> pair_view);  // text indent shift
+	ListView& MergeFrontWith(ListView& list_view);  // text backspace
+	PairView& IndentAfterChild(PairView& child);  // text delete
+	ListView& InsertBack(std::vector<std::unique_ptr<PairView>> pair_view_list);  // list indent
+	ListView& InsertAfter(PairView& child, std::vector<std::unique_ptr<PairView>> pair_view_list);  // list indent shift
+public:
+	PairView& InsertAfter(PairView& child, std::wstring text);  // text split
+	PairView& InsertFront(std::wstring text);  // text split ctrl
+	PairView& IndentChild(PairView& child);  // text indent
+	PairView& IndentChildShift(PairView& child);  // text indent shift
+	PairView& MergeBeforeChild(PairView& child);  // text backspace
+	PairView& MergeFrontChild();  // text delete
+	PairView& MergeAfterChild(PairView& child);  // text delete
+	PairView& InsertAfter(PairView& child, std::vector<std::wstring> text_list);  // text paste
 
 	// input
 private:

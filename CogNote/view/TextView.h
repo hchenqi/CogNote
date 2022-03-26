@@ -6,16 +6,16 @@
 #include "WndDesign/common/unicode_helper.h"
 
 
-class BlockPairView;
+class PairView;
 
 
-class BlockTextView : public BlockView, public LayoutType<Assigned, Auto> {
+class TextView : public BlockView, public LayoutType<Assigned, Auto> {
 public:
-	BlockTextView(BlockView& parent, std::wstring text);
+	TextView(BlockView& parent, std::wstring text);
 
 	// parent
 private:
-	BlockPairView& GetParent();
+	PairView& GetParent();
 
 	// data
 private:
@@ -90,7 +90,7 @@ private:
 
 	// route
 public:
-	void MergeBackWith(BlockTextView& text_view);
+	TextView& MergeBackWith(TextView& text_view);  // text backspace, text delete
 
 	// input
 private:
@@ -98,9 +98,9 @@ private:
 private:
 	void Insert(wchar ch);
 	void Insert(std::wstring str);
-	void Delete(bool is_backspace);
 	void Split();
 	void Indent();
+	void Delete(bool is_backspace);
 private:
 	void Cut();
 	void Copy();

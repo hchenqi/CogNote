@@ -3,17 +3,17 @@
 #include "block_view.h"
 
 
-class BlockTextView;
-class BlockListView;
+class TextView;
+class ListView;
 
 
-class BlockPairView : public BlockView, public LayoutType<Assigned, Auto> {
+class PairView : public BlockView, public LayoutType<Assigned, Auto> {
 public:
-	BlockPairView(BlockView& parent, std::wstring text = {});
+	PairView(BlockView& parent, std::wstring text = {});
 
 	// context
 private:
-	BlockListView& GetParent();
+	ListView& GetParent();
 
 	// data
 private:
@@ -27,11 +27,11 @@ private:
 	child_ptr first;
 	child_ptr second;
 private:
-	ref_ptr<BlockTextView> text_view;
-	ref_ptr<BlockListView> list_view;
+	ref_ptr<TextView> text_view;
+	ref_ptr<ListView> list_view;
 private:
-	BlockTextView& GetTextView() { return *text_view; }
-	BlockListView& GetListView() { return *list_view; }
+	TextView& GetTextView() { return *text_view; }
+	ListView& GetListView() { return *list_view; }
 
 	// layout
 private:
@@ -76,17 +76,20 @@ private:
 
 	// route
 public:
-	BlockTextView& InsertFront(std::wstring text);
-	BlockTextView& InsertFront(std::vector<std::wstring> text_list);
-	BlockPairView& InsertBack(std::unique_ptr<BlockPairView> pair_view);
-	BlockListView& InsertBack(std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
-	BlockTextView& InsertAfterSelf(std::wstring text);
-	BlockTextView& InsertAfterSelf(std::vector<std::wstring> text_list);
-	BlockPairView& InsertAfterSelf(std::unique_ptr<BlockPairView> pair_view);
-	BlockListView& InsertAfterSelf(std::vector<std::unique_ptr<BlockPairView>> pair_view_list);
-	BlockPairView& MergeFront();
-	BlockPairView& MergeWith(BlockPairView& pair_view);
-	BlockTextView& MergeBeforeSelf();
-	BlockTextView& MergeAfterSelf();
-	BlockTextView& IndentSelf();
+	PairView& InsertBack(std::unique_ptr<PairView> pair_view);  // text indent
+	PairView& InsertAfterSelf(std::unique_ptr<PairView> pair_view);  // text indent shift
+	PairView& MergeWith(std::unique_ptr<PairView> pair_view);  // text backspace
+	PairView& InsertBackOrMergeWith(std::unique_ptr<PairView> pair_view);  // text backspace
+	PairView& IndentAfterSelf();  // text delete
+public:
+	TextView& InsertAfterSelf(std::wstring text);  // text split
+	TextView& InsertFront(std::wstring text);  // text split ctrl
+	TextView& IndentSelf();  // text indent
+	TextView& IndentSelfShift();  // text indent shift
+	TextView& MergeBeforeSelf();  // text backspace
+	TextView& MergeAfterSelf();  // text delete
+	TextView& InsertAfterSelf(std::vector<std::wstring> text_list);  // text paste
+public:
+	ListView& InsertBack(std::vector<std::unique_ptr<PairView>> pair_view_list);  // list indent
+	ListView& InsertAfterSelf(std::vector<std::unique_ptr<PairView>> pair_view_list);  // list indent shift
 };
