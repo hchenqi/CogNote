@@ -168,7 +168,7 @@ void ListView::DoSelect(Point point) {
 	} else {
 		size_t begin = selection_begin, end = index; if (end < begin) { std::swap(begin, end); }
 		size_t length = end + 1 - begin;
-		if (selection_range_begin == begin && selection_range_length == length) { return; }
+		if (HasSelectionFocus() && selection_range_begin == begin && selection_range_length == length) { return; }
 		UpdateSelectionRegion(begin, length);
 	}
 }

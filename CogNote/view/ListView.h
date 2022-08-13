@@ -85,7 +85,7 @@ private:
 	virtual void BeginSelect(BlockView& child) override;
 	virtual void DoSelect(Point point) override;
 	virtual void SelectChild(BlockView& child) override;
-	virtual void SelectMore();
+	virtual void SelectMore() override;
 	virtual void ClearSelection() override;
 
 	// drag and drop
