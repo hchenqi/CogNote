@@ -197,7 +197,7 @@ void TextView::FinishDragDrop(BlockView& source) {
 			std::rotate(text.begin() + selection_range_begin, text.begin() + selection_range_end, text.begin() + drag_drop_caret_position);
 			drag_drop_caret_position -= selection_range_length;
 		}
-		TextUpdated();
+		TextModified();
 	} else {
 		std::wstring str = text_view.text.substr(selection_range_begin, selection_range_length);
 		InsertText(drag_drop_caret_position, str);

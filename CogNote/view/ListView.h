@@ -48,7 +48,6 @@ private:
 private:
 	void SetChildIndex(WndObject& child, size_t index) { WndObject::SetChildData<size_t>(child, index); }
 	size_t GetChildIndex(WndObject& child) const { return WndObject::GetChildData<size_t>(child); }
-	void UpdateIndex(size_t begin);
 
 	// layout
 private:
@@ -99,6 +98,8 @@ private:
 	virtual void CancelDragDrop() override;
 
 	// modify
+private:
+	void UpdateIndex(size_t begin);
 private:
 	void InsertChild(size_t index, child_ptr child);
 	void InsertChild(size_t index, std::vector<child_ptr> children);

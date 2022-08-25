@@ -54,13 +54,6 @@ void ListView::Save() {
 
 PairView& ListView::GetChild(child_ptr& child) { return static_cast<PairView&>(*child); }
 
-void ListView::UpdateIndex(size_t begin) {
-	for (size_t index = begin; index < child_list.size(); ++index) {
-		SetChildIndex(child_list[index].child, index);
-	}
-	DataModified();
-}
-
 ListView::child_iter ListView::HitTestItem(float offset) {
 	if (offset < 0.0f) { return child_list.begin(); }
 	static auto cmp = [](const ChildInfo& item, float offset) { return offset >= item.offset; };
@@ -212,6 +205,13 @@ void ListView::DoDragDrop(BlockView& source, Point point) {
 
 void ListView::CancelDragDrop() {
 	RedrawDragDropCaretRegion(); drag_drop_caret_region = region_empty;
+}
+
+void ListView::UpdateIndex(size_t begin) {
+	for (size_t index = begin; index < child_list.size(); ++index) {
+		SetChildIndex(child_list[index].child, index);
+	}
+	DataModified();
 }
 
 void ListView::InsertChild(size_t index, child_ptr child) {
