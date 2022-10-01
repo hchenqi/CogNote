@@ -8,8 +8,8 @@
 
 struct MainFrameStyle : public TitleBarFrame::Style {
 	MainFrameStyle() {
-		width.normal(800px).max(100pct);
-		height.normal(500px).max(100pct);
+		width.min(200px).normal(800px).max(100pct);
+		height.min(200px).normal(500px).max(100pct);
 		position.setHorizontalCenter().setVerticalCenter();
 		border.width(4px).radius(10px).color(Color::CadetBlue);
 		title.assign(L"CogNote");
@@ -19,13 +19,13 @@ struct MainFrameStyle : public TitleBarFrame::Style {
 };
 
 
-class ScrollBox : public SplitLayout<Horizontal, Second> {
+class ScrollBox : public SplitLayoutHorizontal<Assigned, Assigned, Auto, Assigned> {
 protected:
 	using ScrollFrame = ScrollFrame<Vertical>;
 	using Scrollbar = Scrollbar<Vertical>;
 
 public:
-	ScrollBox() : SplitLayout{ new Frame(), new Scrollbar() } {
+	ScrollBox() : SplitLayoutHorizontal{ new Frame(), new Scrollbar() } {
 		GetScrollbar().SetScrollFrame(GetScrollFrame());
 	}
 
@@ -36,8 +36,8 @@ protected:
 	};
 
 protected:
-	ScrollFrame& GetScrollFrame() const { return static_cast<ScrollFrame&>(*first); }
-	Scrollbar& GetScrollbar() const { return static_cast<Scrollbar&>(*second); }
+	ScrollFrame& GetScrollFrame() const { return static_cast<ScrollFrame&>(*child_first); }
+	Scrollbar& GetScrollbar() const { return static_cast<Scrollbar&>(*child_second); }
 };
 
 
