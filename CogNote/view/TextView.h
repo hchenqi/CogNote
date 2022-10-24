@@ -35,7 +35,7 @@ private:
 
 	// layout
 private:
-	float width = 0.0f;
+	Size size;
 private:
 	Size UpdateLayout();
 private:
@@ -80,8 +80,6 @@ private:
 private:
 	void TextModified() { DataModified(); TextUpdated(); }
 private:
-	void SetText(std::wstring str) { text.assign(std::move(str)); TextModified(); }
-	void AppendText(std::wstring str) { text.append(str); TextModified(); }
 	void InsertText(size_t pos, wchar ch) { text.insert(pos, 1, ch); TextModified(); }
 	void InsertText(size_t pos, std::wstring str) { text.insert(pos, str); TextModified(); }
 	void ReplaceText(size_t begin, size_t length, wchar ch) { text.replace(begin, length, 1, ch); TextModified(); }

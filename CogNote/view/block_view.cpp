@@ -1,21 +1,40 @@
 #include "block_view.h"
 #include "RootFrame.h"
 
-#include <unordered_set>
+#include <list>
 
 
 BEGIN_NAMESPACE(Anonymous)
 
-std::unordered_set<ref_ptr<BlockView>> modified_set;
+std::list<ref_ptr<BlockView>> modified_set;
 
 END_NAMESPACE(Anonymous)
 
 
 BlockView::~BlockView() { root.CheckFocus(*this); ResetModified(); }
 
-void BlockView::ResetModified() { if (modified == true) { modified = false; modified_set.erase(this); } }
-void BlockView::DataModified() { if (modified == false) { modified = true; modified_set.insert(this); } }
-void BlockView::SaveAll() { while (!modified_set.empty()) { (*modified_set.begin())->DoSave(); } }
+void BlockView::DataModified() { save_error = false; if (modified == false) { modified = true; modified_set.emplace_front(this); } }
+void BlockView::ResetModified() { save_error = false; if (modified == true) { modified = false; *std::find(modified_set.begin(), modified_set.end(), this) = nullptr; } }
+
+void BlockView::DoSave() {
+	try {
+		Save();
+		ResetModified();
+	} catch (...) {
+		save_error = true;
+	}
+	Redraw(region_infinite);
+}
+
+void BlockView::SaveAll() {
+	for (auto it = modified_set.begin(); it != modified_set.end();) {
+		if (*it == nullptr) {
+			modified_set.erase(it++);
+		} else {
+			(*(it++))->DoSave();
+		}
+	}
+}
 
 bool BlockView::HasCaretFocus() const { return root.GetCaretFocus() == this; }
 void BlockView::SetCaretFocus() { root.SetCaretFocus(*this); }

@@ -10,6 +10,8 @@ BEGIN_NAMESPACE(Anonymous)
 
 // style
 constexpr float gap = 1.0f;
+constexpr Color border_color_unsaved = Color(Color::Green, 63);
+constexpr Color border_color_error = Color(Color::Red, 63);
 
 // selection
 constexpr Color selection_color = Color(Color::DimGray, 0x7f);
@@ -117,6 +119,9 @@ void ListView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
 	}
 	if (HasDragDropFocus()) {
 		figure_queue.add(drag_drop_caret_region.point, new Rectangle(drag_drop_caret_region.size, drag_drop_caret_color));
+	}
+	if (IsModified()) {
+		figure_queue.add(point_zero, new Rectangle(size, 1.0f, HasSaveError() ? border_color_error : border_color_unsaved));
 	}
 }
 

@@ -20,6 +20,9 @@ struct Style : public TextBlockStyle {
 	}
 }style;
 
+constexpr Color border_color_unsaved = Color(Color::Green, 63);
+constexpr Color border_color_error = Color(Color::Red, 63);
+
 // caret
 constexpr float caret_width = 1.0f;
 constexpr Color caret_color = Color::DimGray;
@@ -75,14 +78,14 @@ void TextView::TextUpdated() {
 }
 
 Size TextView::UpdateLayout() {
-	text_block.UpdateSizeRef(Size(width, length_max));
+	text_block.UpdateSizeRef(Size(size.width, length_max));
 	if (HasCaretFocus()) { SetCaret(caret_position); }
 	if (HasSelectionFocus()) { UpdateSelectionRegion(selection_range_begin, selection_range_length); }
-	return Size(width, text_block.GetSize().height);
+	return size.height = text_block.GetSize().height, size;
 }
 
 Size TextView::OnSizeRefUpdate(Size size_ref) {
-	width = size_ref.width;
+	size.width = size_ref.width;
 	return UpdateLayout();
 }
 
@@ -99,6 +102,9 @@ void TextView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
 	}
 	if (HasDragDropFocus()) {
 		figure_queue.add(drag_drop_caret_region.point, new Rectangle(drag_drop_caret_region.size, drag_drop_caret_color));
+	}
+	if (IsModified()) {
+		figure_queue.add(point_zero, new Rectangle(size, 1.0f, HasSaveError() ? border_color_error : border_color_unsaved));
 	}
 }
 

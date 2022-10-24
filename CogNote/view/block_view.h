@@ -16,8 +16,8 @@ private:
 	friend class RootFrame;
 
 public:
-	BlockView(RootFrame& root) : root(root), parent(nullptr) {}
-	BlockView(BlockView& parent) : root(parent.root), parent(&parent) {}
+	BlockView(RootFrame& root) : root(root), parent(nullptr) { DataModified(); }
+	BlockView(BlockView& parent) : root(parent.root), parent(&parent) { DataModified(); }
 	~BlockView();
 
 	// context
@@ -35,17 +35,21 @@ protected:
 	block_ref block;
 private:
 	bool modified = false;
-	void ResetModified();
+	bool save_error = false;
 protected:
+	bool IsModified() const { return modified; }
+	bool HasSaveError() const { return save_error; }
 	void DataModified();
-	static void LoadChild(BlockView& child, block_ref block) { child.ResetModified(); child.block = block; child.Load(); }
+	void ResetModified();
+	void DoSave();
+protected:
+	static void LoadChild(BlockView& child, block_ref block) { child.block = block; child.Load(); child.ResetModified(); }
 	static block_ref GetChildRef(BlockView& child) { if (child.block.empty()) { child.DoSave(); } return child.block; }
-private:
-	static void SaveAll();
-	void DoSave() { ResetModified(); Save(); }
-private:
+protected:
 	virtual void Load() {}
 	virtual void Save() {}
+private:
+	static void SaveAll();
 
 	// caret
 protected:
@@ -53,7 +57,7 @@ protected:
 	void SetCaretFocus();
 protected:
 	static void SetChildCaret(BlockView& child, Point point) { child.SetCaret(point); }
-private:
+protected:
 	virtual void SetCaret(Point point) {}
 	virtual void ClearCaret() {}
 
@@ -68,7 +72,7 @@ private:
 protected:
 	static void DoChildSelect(BlockView& child, Point point) { child.DoSelect(point); };
 	void SelectSelf() { if (!IsRoot()) { parent->SelectChild(*this); } }
-private:
+protected:
 	virtual bool HitTestSelection(Point point) { return false; }
 	virtual void BeginSelect(BlockView& child) {}
 	virtual void DoSelect(Point point) {}
@@ -84,7 +88,7 @@ protected:
 	void ClearDragDropFocus();
 protected:
 	static void DoChildDragDrop(BlockView& child, BlockView& source, Point point) { child.DoDragDrop(source, point); };
-private:
+protected:
 	virtual void DoDragDrop(BlockView& source, Point point) {}
 	virtual void CancelDragDrop() {}
 	virtual void FinishDragDrop(BlockView& source) {}
