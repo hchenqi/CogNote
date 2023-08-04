@@ -1,8 +1,6 @@
 #include "TextView.h"
 #include "PairView.h"
 
-#include "BlockStore/layout_traits_stl.h"
-
 #include "WndDesign/figure/shape.h"
 #include "WndDesign/message/ime.h"
 #include "WndDesign/system/clipboard.h"
@@ -15,7 +13,6 @@ BEGIN_NAMESPACE(Anonymous)
 // style
 struct Style : public TextBlockStyle {
 	Style() {
-		paragraph.line_height(25px);
 		font.family(L"Times New Roman", L"SimSun").size(20);
 	}
 }style;
@@ -66,9 +63,9 @@ TextView::TextView(BlockView& parent, std::wstring text) :
 
 PairView& TextView::GetParent() { return static_cast<PairView&>(BlockView::GetParent()); }
 
-void TextView::Load() { block.read(text); TextUpdated(); }
+void TextView::Load() { Deserialize(block.read().first, text); TextUpdated(); }
 
-void TextView::Save() { block.write(text); }
+void TextView::Save() { block.write(Serialize(text), {}); }
 
 void TextView::TextUpdated() {
 	text_block.SetText(style, text);
@@ -96,7 +93,7 @@ void TextView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
 	}
 	if (HasSelectionFocus()) {
 		for (auto& it : selection_info) {
-			Rect& region = it.geometry_region; if (region.Intersect(draw_region).IsEmpty()) { continue; }
+			Rect& region = it.region; if (region.Intersect(draw_region).IsEmpty()) { continue; }
 			figure_queue.add(region.point, new Rectangle(region.size, selection_color));
 		}
 	}
@@ -113,12 +110,12 @@ void TextView::RedrawCaretRegion() { Redraw(caret_region); }
 void TextView::SetCaret(const HitTestInfo& info) {
 	SetCaretFocus();
 	RedrawCaretRegion();
-	caret_position = info.text_position;
-	caret_region = Rect(info.geometry_region.point, Size(caret_width, info.geometry_region.size.height));
+	caret_position = info.range.begin;
+	caret_region = Rect(info.region.point, Size(caret_width, info.region.size.height));
 	RedrawCaretRegion();
 }
 
-void TextView::SetCaret(size_t text_position) { SetCaret(text_block.HitTestTextPosition(text_position)); }
+void TextView::SetCaret(size_t text_position) { SetCaret(text_block.HitTestPosition(text_position)); }
 
 void TextView::SetCaret(Point point) { SetCaret(text_block.HitTestPoint(point)); }
 
@@ -132,9 +129,9 @@ void TextView::UpdateSelectionRegion(size_t begin, size_t length) {
 	selection_range_begin = begin; selection_range_length = length;
 	selection_info.clear(); selection_region_union = region_empty;
 	if (length == 0) { return; }
-	selection_info = text_block.HitTestTextRange(begin, length);
+	selection_info = text_block.HitTestRange(TextRange(begin, length));
 	for (auto& it : selection_info) {
-		selection_region_union = selection_region_union.Union(it.geometry_region);
+		selection_region_union = selection_region_union.Union(it.region);
 	}
 	RedrawSelectionRegion();
 }
@@ -146,14 +143,14 @@ void TextView::SelectWord() {
 }
 
 bool TextView::HitTestSelection(Point point) {
-	for (auto& it : selection_info) { if (it.geometry_region.Contains(point)) { return true; } }
+	for (auto& it : selection_info) { if (it.region.Contains(point)) { return true; } }
 	return false;
 }
 
 void TextView::BeginSelect(BlockView& child) { selection_begin = caret_position; }
 
 void TextView::DoSelect(Point point) {
-	size_t begin = selection_begin, end = text_block.HitTestPoint(point).text_position;
+	size_t begin = selection_begin, end = text_block.HitTestPoint(point).range.begin;
 	if (end < begin) { std::swap(begin, end); }
 	UpdateSelectionRegion(begin, end - begin);
 }
@@ -173,13 +170,13 @@ void TextView::RedrawDragDropCaretRegion() { Redraw(drag_drop_caret_region); }
 void TextView::DoDragDrop(BlockView& source, Point point) {
 	if (dynamic_cast<TextView*>(&source) == nullptr) { return ClearDragDropFocus(); }
 	HitTestInfo info = text_block.HitTestPoint(point);
-	if (HasSelectionFocus() && PositionCoveredBySelection(info.text_position)) {
+	if (HasSelectionFocus() && PositionCoveredBySelection(info.range.begin)) {
 		ClearDragDropFocus();
-	} else if (!HasDragDropFocus() || drag_drop_caret_position != info.text_position) {
+	} else if (!HasDragDropFocus() || drag_drop_caret_position != info.range.begin) {
 		SetDragDropFocus();
 		RedrawDragDropCaretRegion();
-		drag_drop_caret_position = info.text_position;
-		drag_drop_caret_region = Rect(info.geometry_region.point, Size(drag_drop_caret_width, info.geometry_region.size.height));
+		drag_drop_caret_position = info.range.begin;
+		drag_drop_caret_region = Rect(info.region.point, Size(drag_drop_caret_width, info.region.size.height));
 		RedrawDragDropCaretRegion();
 	}
 }

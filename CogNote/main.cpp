@@ -14,7 +14,7 @@ struct MainFrameStyle : public TitleBarFrame::Style {
 		border.width(4px).radius(10px).color(Color::CadetBlue);
 		title.assign(L"CogNote");
 		title_format.font.size(16px);
-		title_format.paragraph.line_height(130pct);
+		title_format.paragraph.line_spacing(120pct);
 	}
 };
 

@@ -1,11 +1,11 @@
 #pragma once
 
 #include "WndDesign/window/wnd_traits.h"
-#include "BlockStore/block_ref.h"
+#include "BlockStore/block.h"
 
 
 using namespace WndDesign;
-using BlockStore::block_ref;
+using namespace BlockStore;
 
 
 class RootFrame;
@@ -32,7 +32,7 @@ protected:
 
 	// data
 protected:
-	block_ref block;
+	block block;
 private:
 	bool modified = false;
 	bool save_error = false;
@@ -43,7 +43,7 @@ protected:
 	void ResetModified();
 	void DoSave();
 protected:
-	static void LoadChild(BlockView& child, block_ref block) { child.block = block; child.Load(); child.ResetModified(); }
+	static void LoadChild(BlockView& child, block_ref ref) { child.block = ref; child.Load(); child.ResetModified(); }
 	static block_ref GetChildRef(BlockView& child) { if (child.block.empty()) { child.DoSave(); } return child.block; }
 protected:
 	virtual void Load() {}

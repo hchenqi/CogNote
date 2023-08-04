@@ -15,12 +15,12 @@ PairView::PairView(BlockView& parent, std::wstring text) :
 ListView& PairView::GetParent() { return static_cast<ListView&>(BlockView::GetParent()); }
 
 void PairView::Load() {
-	std::pair<block_ref, block_ref> data; block.read(data);
-	LoadChild(*text_view, data.first); LoadChild(*list_view, data.second);
+	std::vector<block_ref> data = block.read().second; data.resize(2);
+	LoadChild(*text_view, data[0]); LoadChild(*list_view, data[1]);
 }
 
 void PairView::Save() {
-	block.write(std::make_pair(GetChildRef(*text_view), GetChildRef(*list_view)));
+	block.write({}, { GetChildRef(*text_view), GetChildRef(*list_view) });
 }
 
 Point PairView::ConvertToListViewPoint(Point point) {

@@ -28,11 +28,11 @@ END_NAMESPACE(Anonymous)
 RootFrame::RootFrame() : ScrollFrame(new PaddingFrame(Padding(50, 30), block_view = new ListView(*this))) {
 	cursor = Cursor::Text;
 	ime.Enable(*this);
-	block_manager.open("CogNote.db");
+	block_manager.open_file("CogNote.db");
 	BlockView::LoadChild(GetChild(), block_manager.get_root());
 }
 
-RootFrame::~RootFrame() { Save(); block_manager.close(); }
+RootFrame::~RootFrame() { Save(); block_manager.close_file(); }
 
 void RootFrame::Save() {
 	BlockView::SaveAll();

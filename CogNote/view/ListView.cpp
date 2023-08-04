@@ -1,8 +1,6 @@
 #include "ListView.h"
 #include "PairView.h"
 
-#include "BlockStore/layout_traits_stl.h"
-
 #include "WndDesign/figure/shape.h"
 
 
@@ -37,7 +35,7 @@ END_NAMESPACE(Anonymous)
 PairView& ListView::GetParent() { return static_cast<PairView&>(BlockView::GetParent()); }
 
 void ListView::Load() {
-	std::vector<block_ref> data; block.read(data);
+	std::vector<block_ref> data = block.read().second;
 	child_list.clear(); child_list.reserve(data.size()); size_t index = 0;
 	for (auto& it : data) {
 		auto& info = child_list.emplace_back(new PairView(*this));
@@ -51,7 +49,7 @@ void ListView::Load() {
 void ListView::Save() {
 	std::vector<block_ref> data; data.reserve(child_list.size());
 	for (auto& it : child_list) { data.push_back(GetChildRef(GetChild(it.child))); }
-	block.write(data);
+	block.write({}, data);
 }
 
 PairView& ListView::GetChild(child_ptr& child) { return static_cast<PairView&>(*child); }
