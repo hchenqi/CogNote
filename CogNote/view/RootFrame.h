@@ -2,11 +2,13 @@
 
 #include "WndDesign/frame/ScrollFrame.h"
 
+#include "message/mouse_helper.h"
+
 
 using namespace WndDesign;
 
 
-class BlockView;
+class Block;
 class ListView;
 
 
@@ -21,37 +23,38 @@ private:
 
 	// child
 private:
-	ref_ptr<ListView> block_view;
+	ref_ptr<ListView> child;
 private:
-	BlockView& GetChild();
+	WndObject& GetChildWnd();
+	Block& GetChildBlock();
 
 	// layout
 private:
-	Point ConvertToDescendentPoint(Point point, BlockView& block_view);
-	Point ConvertToChildPoint(Point point) { return ConvertToDescendentPoint(point, GetChild()); }
+	Point ConvertToDescendentPoint(Point point, WndObject& block_view);
+	Point ConvertToChildPoint(Point point) { return ConvertToDescendentPoint(point, GetChildWnd()); }
 private:
 	virtual ref_ptr<WndObject> HitTest(Point& point) override { return this; }
 
 	// focus
 public:
-	void CheckFocus(BlockView& block_view);
+	void CheckFocus(Block& block_view);
 
 	// caret
 private:
-	ref_ptr<BlockView> caret_focus = nullptr;
+	ref_ptr<Block> caret_focus = nullptr;
 public:
-	ref_ptr<BlockView> GetCaretFocus() const { return caret_focus; }
-	void SetCaretFocus(BlockView& block_view);
+	ref_ptr<Block> GetCaretFocus() const { return caret_focus; }
+	void SetCaretFocus(Block& block_view);
 private:
 	void SetCaret(Point point);
 	void ClearCaret();
 
 	// selection
 private:
-	ref_ptr<BlockView> selection_focus = nullptr;
+	ref_ptr<Block> selection_focus = nullptr;
 public:
-	ref_ptr<BlockView> GetSelectionFocus() const { return selection_focus; }
-	void SetSelectionFocus(BlockView& block_view);
+	ref_ptr<Block> GetSelectionFocus() const { return selection_focus; }
+	void SetSelectionFocus(Block& block_view);
 	void ClearSelectionFocus() { ClearSelection(); }
 private:
 	void BeginSelect();
@@ -62,10 +65,11 @@ private:
 
 	// drag and drop
 private:
-	ref_ptr<BlockView> drag_drop_focus = nullptr;
+	bool drag_drop_begin = false;
+	ref_ptr<Block> drag_drop_focus = nullptr;
 public:
-	ref_ptr<BlockView> GetDragDropFocus() const { return drag_drop_focus; }
-	void SetDragDropFocus(BlockView& block_view);
+	ref_ptr<Block> GetDragDropFocus() const { return drag_drop_focus; }
+	void SetDragDropFocus(Block& block_view);
 	void ClearDragDropFocus() { CancelDragDrop(); }
 private:
 	void DoDragDrop(Point point);
@@ -73,9 +77,13 @@ private:
 	void FinishDragDrop();
 
 	// message
+private:
+	bool is_ctrl_down = false;
+	bool is_shift_down = false;
+	MouseHelper mouse_helper;
 public:
-	bool IsCtrlDown() const;
-	bool IsShiftDown() const;
+	bool IsCtrlDown() const { return is_ctrl_down; }
+	bool IsShiftDown() const { return is_shift_down; }
 private:
 	virtual void OnMouseMsg(MouseMsg msg) override;
 	virtual void OnKeyMsg(KeyMsg msg) override;

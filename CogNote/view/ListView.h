@@ -1,19 +1,25 @@
 #pragma once
 
-#include "block_view.h"
+#include "WndDesign/layout/ListLayout.h"
+#include "WndDesign/figure/shape.h"
+
+#include "block.h"
 
 
 class PairView;
 
 
-class ListView : public BlockView, public LayoutType<Assigned, Auto> {
+class ListView : public Block, public ListLayout<Vertical> {
+private:
+	using Base = ListLayout;
+
 public:
-	ListView(RootFrame& root) : BlockView(root) {}
-	ListView(BlockView& parent) : BlockView(parent) {}
+	ListView(RootFrame& root) : Block(root), Base(gap) {}
+	ListView(Block& parent) : Block(parent), Base(gap) {}
 
 	// context
 public:
-	BlockView::IsRoot;
+	Block::IsRoot;
 private:
 	PairView& GetParent();
 
@@ -22,51 +28,26 @@ private:
 	virtual void Load() override;
 	virtual void Save() override;
 
+	// style
+private:
+	static constexpr float gap = 1.0f;
+
 	// child
 private:
-	using child_ptr = child_ptr<Assigned, Auto>;
-private:
-	struct ChildInfo {
-	public:
-		child_ptr child;
-		float offset = 0.0f;
-		float length = 0.0f;
-	public:
-		ChildInfo(child_ptr child) : child(std::move(child)) {}
-	public:
-		float BeginOffset() const { return offset; }
-		float EndOffset() const { return offset + length; }
-	};
-	std::vector<ChildInfo> child_list;
-private:
-	using child_iter = std::vector<ChildInfo>::iterator;
-public:
-	bool IsEmpty() const { return child_list.empty(); }
-private:
-	PairView& GetChild(child_ptr& child);
-	PairView& GetChild(size_t index) { return GetChild(child_list[index].child); }
-private:
-	void SetChildIndex(WndObject& child, size_t index) { WndObject::SetChildData<size_t>(child, index); }
-	size_t GetChildIndex(WndObject& child) const { return WndObject::GetChildData<size_t>(child); }
+	PairView& GetChild(WndObject& child);
+	PairView& GetChild(size_t index) { return GetChild(Base::GetChild(index)); }
 
-	// layout
+	// modify
 private:
-	Size size;
-private:
-	Rect GetChildRegion(size_t index) const { return Rect(Point(0.0f, child_list[index].offset), Size(size.width, child_list[index].length)); }
-	Rect GetChildRegion(WndObject& child) const { return GetChildRegion(GetChildIndex(child)); }
-	child_iter HitTestItem(float offset);
-private:
-	void UpdateLayout(size_t index);
-private:
-	virtual Size OnSizeRefUpdate(Size size_ref) override;
-	virtual void OnChildSizeUpdate(WndObject& child, Size child_size) override;
-private:
-	virtual Transform GetChildTransform(WndObject& child) const override;
+	PairView& InsertChild(size_t index, std::wstring text);
+	PairView& InsertChild(size_t index, std::vector<std::wstring> text_list);
+	PairView& InsertChild(size_t index, std::unique_ptr<PairView> pair_view);
+	void InsertChild(size_t index, std::vector<std::unique_ptr<PairView>> pair_view_list);
+	std::unique_ptr<PairView> ExtractChild(size_t index);
+	std::vector<std::unique_ptr<PairView>> ExtractChild(size_t begin, size_t length);
 
 	// paint
 private:
-	virtual void OnChildRedraw(WndObject& child, Rect child_redraw_region) override;
 	virtual void OnDraw(FigureQueue& figure_queue, Rect draw_region) override;
 
 	// caret
@@ -75,42 +56,43 @@ private:
 
 	// selection
 private:
+	static constexpr Color selection_color = Color(Color::DimGray, 0x7f);
+private:
 	size_t selection_begin = 0;
+	size_t selection_range_begin = 0;
+	size_t selection_range_length = 0;
+	Rect selection_region = region_empty;
+private:
+	size_t get_selection_range_end() { return selection_range_begin + selection_range_length; }
+	bool PositionInSelection(size_t pos) { return selection_range_begin <= pos && pos < get_selection_range_end(); }
+	bool PositionCoveredBySelection(size_t pos) { return selection_range_begin <= pos && pos <= get_selection_range_end(); }
 private:
 	void RedrawSelectionRegion();
 	void UpdateSelectionRegion(size_t begin, size_t length);
 private:
 	virtual bool HitTestSelection(Point point) override;
-	virtual void BeginSelect(BlockView& child) override;
+	virtual void BeginSelect(Block& child) override;
 	virtual void DoSelect(Point point) override;
-	virtual void SelectChild(BlockView& child) override;
+	virtual void SelectChild(Block& child) override;
 	virtual void SelectMore() override;
 	virtual void ClearSelection() override;
 
 	// drag and drop
 private:
+	static constexpr float drag_drop_caret_height = 1.0f;
+	static constexpr Color drag_drop_caret_color = Color::DimGray;
+private:
+	size_t drag_drop_caret_position = 0;
+	Rect drag_drop_caret_region = region_empty;
+private:
 	void RedrawDragDropCaretRegion();
 	void UpdateDragDropCaretRegion(size_t pos);
 public:
-	void DoDragDropBefore(BlockView& child) { UpdateDragDropCaretRegion(GetChildIndex(child)); }
+	void DoDragDropBefore(Block& child) { UpdateDragDropCaretRegion(GetChildIndex(dynamic_cast<WndObject&>(child))); }
 private:
-	virtual void DoDragDrop(BlockView& source, Point point) override;
+	virtual void DoDragDrop(Block& source, Point point) override;
 	virtual void CancelDragDrop() override;
-
-	// modify
-private:
-	void UpdateIndex(size_t begin);
-private:
-	void InsertChild(size_t index, child_ptr child);
-	void InsertChild(size_t index, std::vector<child_ptr> children);
-	void EraseChild(size_t begin, size_t length);
-private:
-	PairView& InsertChild(size_t index, std::wstring text);
-	PairView& InsertChild(size_t index, std::vector<std::wstring> text_list);
-	PairView& InsertChild(size_t index, std::unique_ptr<PairView> pair_view);
-	void InsertChild(size_t index, std::vector<std::unique_ptr<PairView>> pair_view_list);
-	std::unique_ptr<PairView> ExtractChild(size_t index);
-	std::vector<std::unique_ptr<PairView>> ExtractChild(size_t begin, size_t length);
+	virtual void FinishDragDrop(Block& source) override;
 
 	// route
 public:
@@ -131,8 +113,6 @@ public:
 	PairView& InsertAfter(PairView& child, std::vector<std::wstring> text_list);  // text paste
 
 	// input
-private:
-	virtual void FinishDragDrop(BlockView& source) override;
 private:
 	void Delete();
 	void Indent();

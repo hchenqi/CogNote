@@ -5,14 +5,14 @@
 #include "WndDesign/frame/PaddingFrame.h"
 
 
-PairView::PairView(BlockView& parent, std::wstring text) :
-	BlockView(parent),
-	first(text_view = new TextView(*this, text)),
-	second(new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new ListView(*this))) {
-	RegisterChild(first); RegisterChild(second);
+PairView::PairView(Block& parent, std::wstring text) :
+	Block(parent), Base{
+		child_ptr_first() = text_view = new TextView(*this, text),
+		new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new ListView(*this))
+	} {
 }
 
-ListView& PairView::GetParent() { return static_cast<ListView&>(BlockView::GetParent()); }
+ListView& PairView::GetParent() { return static_cast<ListView&>(Block::GetParent()); }
 
 void PairView::Load() {
 	std::vector<block_ref> data = block.read().second; data.resize(2);
@@ -27,35 +27,12 @@ Point PairView::ConvertToListViewPoint(Point point) {
 	return point_zero + (point - ConvertDescendentPoint(*list_view, point_zero));
 }
 
-Size PairView::OnSizeRefUpdate(Size size_ref) {
-	if (width != size_ref.width) {
-		width = size_ref.width;
-		length_first = UpdateChildSizeRef(first, Size(width, length_min)).height;
-		length_second = UpdateChildSizeRef(second, Size(width, length_min)).height;
-	}
-	return GetSize();
-}
-
-void PairView::OnChildSizeUpdate(WndObject& child, Size child_size) {
-	if (&child == first.get()) {
-		if (length_first != child_size.height) { length_first = child_size.height; SizeUpdated(GetSize()); }
-	} else {
-		if (length_second != child_size.height) { length_second = child_size.height; SizeUpdated(GetSize()); }
-	}
-}
-
-Transform PairView::GetChildTransform(WndObject& child) const {
-	return GetChildRegion(child).point - point_zero;
-}
-
-void PairView::OnChildRedraw(WndObject& child, Rect child_redraw_region) {
-	Rect child_region = GetChildRegion(child);
-	Redraw(child_region.Intersect(child_redraw_region + (child_region.point - point_zero)));
-}
-
 void PairView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
-	DrawChild(first, GetRegionFirst(), figure_queue, draw_region);
-	DrawChild(second, GetRegionSecond(), figure_queue, draw_region);
+	DrawChild(child_first, GetRegionFirst(), figure_queue, draw_region);
+	DrawChild(child_second, GetRegionSecond(), figure_queue, draw_region);
+	if (text_view->IsModified() || list_view->IsModified()) {
+		figure_queue.add(point_zero, new Circle(1.0f, text_view->HasSaveError() || list_view->HasSaveError() ? color_error : color_unsaved));
+	}
 }
 
 void PairView::SetCaret(Point point) {
@@ -68,7 +45,7 @@ void PairView::SetCaret(Point point) {
 
 void PairView::SetTextViewCaret(size_t pos) { GetTextView().SetCaret(pos); }
 
-void PairView::BeginSelect(BlockView& child) { is_text_view_selection_begin = &child == &GetTextView(); }
+void PairView::BeginSelect(Block& child) { is_text_view_selection_begin = &child == &GetTextView(); }
 
 void PairView::DoSelect(Point point) {
 	if (is_text_view_selection_begin) {
@@ -86,9 +63,9 @@ void PairView::DoSelect(Point point) {
 	}
 }
 
-void PairView::SelectChild(BlockView& child) { SelectSelf(); }
+void PairView::SelectChild(Block& child) { SelectSelf(); }
 
-void PairView::DoDragDrop(BlockView& source, Point point) {
+void PairView::DoDragDrop(Block& source, Point point) {
 	if (dynamic_cast<ListView*>(&source) == nullptr) {
 		if (HitTestTextView(point)) {
 			DoChildDragDrop(GetTextView(), source, point);
@@ -119,7 +96,7 @@ PairView& PairView::MergeWith(std::unique_ptr<PairView> pair_view) {
 }
 
 PairView& PairView::InsertBackOrMergeWith(std::unique_ptr<PairView> pair_view) {
-	if (GetListView().IsEmpty()) {
+	if (GetListView().Empty()) {
 		return MergeWith(std::move(pair_view));
 	} else {
 		return InsertBack(std::move(pair_view));
@@ -131,7 +108,7 @@ PairView& PairView::IndentAfterSelf() {
 }
 
 TextView& PairView::InsertAfterSelfOrFront(std::wstring text, bool ctrl) {
-	if (GetListView().IsEmpty() ^ ctrl) {
+	if (GetListView().Empty() ^ ctrl) {
 		return GetParent().InsertAfter(*this, text).GetTextView();
 	} else {
 		return GetListView().InsertFront(text).GetTextView();
@@ -151,7 +128,7 @@ TextView& PairView::MergeBeforeSelf() {
 }
 
 TextView& PairView::MergeAfterSelf() {
-	if (GetListView().IsEmpty()) {
+	if (GetListView().Empty()) {
 		return GetParent().MergeAfterChild(*this).GetTextView();
 	} else {
 		return GetListView().MergeFrontChild().GetTextView();

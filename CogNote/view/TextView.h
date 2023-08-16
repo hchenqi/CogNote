@@ -1,17 +1,22 @@
 #pragma once
 
-#include "block_view.h"
+#include "WndDesign/control/EditBox.h"
+
+#include "block.h"
 
 #include "WndDesign/figure/text_block.h"
 #include "WndDesign/common/unicode_helper.h"
 
 
+using namespace WndDesign;
+
+
 class PairView;
 
 
-class TextView : public BlockView, public LayoutType<Assigned, Auto> {
+class TextView : public Block, public EditBox {
 public:
-	TextView(BlockView& parent, std::wstring text);
+	TextView(Block& parent, std::wstring text);
 
 	// parent
 private:
@@ -22,69 +27,42 @@ private:
 	virtual void Load() override;
 	virtual void Save() override;
 
-	// text
+	// modify
 private:
-	using HitTestInfo = TextBlock::HitTestInfo;
-private:
-	std::wstring text;
-	TextBlock text_block;
-	WordBreakIterator word_break_iterator;
-private:
-	size_t GetCharacterLength(size_t text_position) { return GetUTF16CharLength(text[text_position]); }
-	void TextUpdated();
-
-	// layout
-private:
-	Size size;
-private:
-	Size UpdateLayout();
-private:
-	virtual Size OnSizeRefUpdate(Size size_ref) override;
+	virtual void OnTextUpdate() override { EditBox::OnTextUpdate(); DataModified(); }
 
 	// paint
 private:
 	virtual void OnDraw(FigureQueue& figure_queue, Rect draw_region) override;
 
 	// caret
-private:
-	void RedrawCaretRegion();
-private:
-	void SetCaret(const HitTestInfo& info);
 public:
-	void SetCaret(size_t text_position);
+	void SetCaret(size_t position) { EditBox::SetCaret(position); SetCaretFocus(); }
 private:
-	virtual void SetCaret(Point point) override;
-	virtual void ClearCaret() override;
+	virtual void SetCaret(Point point) override { EditBox::SetCaret(point); SetCaretFocus(); }
+	virtual void ClearCaret() override { EditBox::HideCaret(); }
 
 	// selection
 private:
-	void RedrawSelectionRegion();
-	void UpdateSelectionRegion(size_t begin, size_t count);
-private:
-	void SelectWord();
-private:
 	virtual bool HitTestSelection(Point point) override;
-	virtual void BeginSelect(BlockView& child) override;
-	virtual void DoSelect(Point point) override;
+	virtual void BeginSelect(Block& child) override {}
+	virtual void DoSelect(Point point) override { EditBox::DoSelect(point); SetSelectionFocus(); }
 	virtual void SelectMore() override;
-	virtual void ClearSelection() override;
+	virtual void ClearSelection() override { EditBox::ClearSelection(); }
 
 	// drag and drop
 private:
+	static constexpr float drag_drop_caret_width = 1.0f;
+	static constexpr Color drag_drop_caret_color = Color::DimGray;
+private:
+	size_t drag_drop_caret_position = 0;
+	Rect drag_drop_caret_region = region_empty;
+private:
 	void RedrawDragDropCaretRegion();
 private:
-	virtual void DoDragDrop(BlockView& source, Point point) override;
+	virtual void DoDragDrop(Block& source, Point point) override;
 	virtual void CancelDragDrop() override;
-
-	// modify
-private:
-	void TextModified() { DataModified(); TextUpdated(); }
-private:
-	void InsertText(size_t pos, wchar ch) { text.insert(pos, 1, ch); TextModified(); }
-	void InsertText(size_t pos, std::wstring str) { text.insert(pos, str); TextModified(); }
-	void ReplaceText(size_t begin, size_t length, wchar ch) { text.replace(begin, length, 1, ch); TextModified(); }
-	void ReplaceText(size_t begin, size_t length, std::wstring str) { text.replace(begin, length, str); TextModified(); }
-	void DeleteText(size_t begin, size_t length) { text.erase(begin, length); TextModified(); }
+	virtual void FinishDragDrop(Block& source) override;
 
 	// route
 public:
@@ -92,21 +70,11 @@ public:
 
 	// input
 private:
-	virtual void FinishDragDrop(BlockView& source) override;
-private:
-	void Insert(wchar ch);
-	void Insert(std::wstring str);
 	void Split();
 	void Indent();
 	void Delete(bool is_backspace);
 private:
-	void Cut();
-	void Copy();
 	void Paste();
-private:
-	void OnImeBegin();
-	void OnImeString();
-	void OnImeEnd();
 
 	// message
 private:

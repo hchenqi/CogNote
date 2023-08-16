@@ -1,15 +1,21 @@
 #pragma once
 
-#include "block_view.h"
+#include "WndDesign/layout/SplitLayout.h"
+#include "WndDesign/figure/shape.h"
+
+#include "block.h"
 
 
 class TextView;
 class ListView;
 
 
-class PairView : public BlockView, public LayoutType<Assigned, Auto> {
+class PairView : public Block, public SplitLayoutVertical<Assigned, Auto, Assigned, Auto> {
+private:
+	using Base = SplitLayoutVertical;
+
 public:
-	PairView(BlockView& parent, std::wstring text = {});
+	PairView(Block& parent, std::wstring text = {});
 
 	// context
 private:
@@ -22,11 +28,6 @@ private:
 
 	// child
 private:
-	using child_ptr = child_ptr<Assigned, Auto>;
-private:
-	child_ptr first;
-	child_ptr second;
-private:
 	ref_ptr<TextView> text_view;
 	ref_ptr<ListView> list_view;
 private:
@@ -35,25 +36,14 @@ private:
 
 	// layout
 private:
-	float width = 0.0f;
-	float length_first = 0.0f;
-	float length_second = 0.0f;
-private:
-	Size GetSize() const { return Size(width, length_first + length_second); }
-	Rect GetRegionFirst() const { return Rect(point_zero, Size(width, length_first)); }
-	Rect GetRegionSecond() const { return Rect(Point(0.0f, length_first), Size(width, length_second)); }
-	Rect GetChildRegion(WndObject& child) const { return &child == first.get() ? GetRegionFirst() : GetRegionSecond(); }
 	bool HitTestTextView(Point point) { return point.y < length_first; }
 	Point ConvertToListViewPoint(Point point);
-private:
-	virtual Size OnSizeRefUpdate(Size size_ref) override;
-	virtual void OnChildSizeUpdate(WndObject& child, Size child_size) override;
-private:
-	virtual Transform GetChildTransform(WndObject& child) const override;
 
 	// paint
 private:
-	virtual void OnChildRedraw(WndObject& child, Rect child_redraw_region) override;
+	static constexpr Color color_unsaved = Color(Color::Green, 63);
+	static constexpr Color color_error = Color(Color::Red, 63);
+private:
 	virtual void OnDraw(FigureQueue& figure_queue, Rect draw_region) override;
 
 	// caret
@@ -66,13 +56,13 @@ public:
 private:
 	bool is_text_view_selection_begin = false;
 private:
-	virtual void BeginSelect(BlockView& child) override;
+	virtual void BeginSelect(Block& child) override;
 	virtual void DoSelect(Point point) override;
-	virtual void SelectChild(BlockView& child) override;
+	virtual void SelectChild(Block& child) override;
 
 	// drag and drop
 private:
-	virtual void DoDragDrop(BlockView& source, Point point) override;
+	virtual void DoDragDrop(Block& source, Point point) override;
 
 	// route
 public:

@@ -168,7 +168,7 @@
     <ClCompile Include="view\ListView.cpp" />
     <ClCompile Include="view\PairView.cpp" />
     <ClCompile Include="view\TextView.cpp" />
-    <ClCompile Include="view\block_view.cpp" />
+    <ClCompile Include="view\block.cpp" />
     <ClCompile Include="view\RootFrame.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -176,7 +176,7 @@
     <ClInclude Include="view\ListView.h" />
     <ClInclude Include="view\PairView.h" />
     <ClInclude Include="view\TextView.h" />
-    <ClInclude Include="view\block_view.h" />
+    <ClInclude Include="view\block.h" />
     <ClInclude Include="view\message\mouse_helper.h" />
     <ClInclude Include="view\RootFrame.h" />
   </ItemGroup>

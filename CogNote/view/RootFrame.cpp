@@ -1,12 +1,12 @@
 #include "RootFrame.h"
 #include "ListView.h"
 
+#include "block.h"
+
 #include "BlockStore/block_manager.h"
 
 #include "WndDesign/frame/PaddingFrame.h"
 #include "WndDesign/message/ime.h"
-
-#include "message/mouse_helper.h"
 
 
 using BlockStore::block_manager;
@@ -14,58 +14,52 @@ using BlockStore::block_manager;
 
 BEGIN_NAMESPACE(Anonymous)
 
-// drag and drop
-bool drag_drop_begin = false;
-
-// message
-bool is_ctrl_down = false;
-bool is_shift_down = false;
-MouseHelper mouse_helper;
-
 END_NAMESPACE(Anonymous)
 
 
-RootFrame::RootFrame() : ScrollFrame(new PaddingFrame(Padding(50, 30), block_view = new ListView(*this))) {
+RootFrame::RootFrame() : ScrollFrame(new PaddingFrame(Padding(50, 30), child = new ListView(*this))) {
 	cursor = Cursor::Text;
 	ime.Enable(*this);
 	block_manager.open_file("CogNote.db");
-	BlockView::LoadChild(GetChild(), block_manager.get_root());
+	Block::LoadChild(GetChildBlock(), block_manager.get_root());
 }
 
 RootFrame::~RootFrame() { Save(); block_manager.close_file(); }
 
 void RootFrame::Save() {
-	BlockView::SaveAll();
-	block_manager.set_root(BlockView::GetChildRef(GetChild()));
+	Block::SaveAll();
+	block_manager.set_root(Block::GetChildRef(GetChildBlock()));
 }
 
-BlockView& RootFrame::GetChild() { return *block_view; }
+WndObject& RootFrame::GetChildWnd() { return *child; }
 
-Point RootFrame::ConvertToDescendentPoint(Point point, BlockView& block_view) {
+Block& RootFrame::GetChildBlock() { return *child; }
+
+Point RootFrame::ConvertToDescendentPoint(Point point, WndObject& block_view) {
 	return point_zero + (point - ConvertDescendentPoint(block_view, point_zero));
 }
 
-void RootFrame::CheckFocus(BlockView& block_view) {
+void RootFrame::CheckFocus(Block& block_view) {
 	if (caret_focus == &block_view) { caret_focus = nullptr; }
 	if (selection_focus == &block_view) { selection_focus = nullptr; }
 	if (drag_drop_focus == &block_view) { drag_drop_focus = nullptr; }
 }
 
-void RootFrame::SetCaretFocus(BlockView& block_view) {
+void RootFrame::SetCaretFocus(Block& block_view) {
 	if (caret_focus == &block_view) { return; }
 	ClearCaret(); ClearSelection();
 	caret_focus = &block_view;
 }
 
 void RootFrame::SetCaret(Point point) {
-	GetChild().SetCaret(ConvertToChildPoint(point));
+	GetChildBlock().SetCaret(ConvertToChildPoint(point));
 }
 
 void RootFrame::ClearCaret() {
 	if (caret_focus) { caret_focus->ClearCaret(); caret_focus = nullptr; }
 }
 
-void RootFrame::SetSelectionFocus(BlockView& block_view) {
+void RootFrame::SetSelectionFocus(Block& block_view) {
 	if (selection_focus == &block_view) { return; }
 	ClearCaret(); ClearSelection();
 	selection_focus = &block_view;
@@ -76,7 +70,7 @@ void RootFrame::BeginSelect() {
 }
 
 void RootFrame::DoSelect(Point point) {
-	GetChild().DoSelect(ConvertToChildPoint(point));
+	GetChildBlock().DoSelect(ConvertToChildPoint(point));
 }
 
 void RootFrame::FinishSelect() {
@@ -95,14 +89,14 @@ void RootFrame::ClearSelection() {
 	if (selection_focus) { selection_focus->ClearSelection(); selection_focus = nullptr; }
 }
 
-void RootFrame::SetDragDropFocus(BlockView& block_view) {
+void RootFrame::SetDragDropFocus(Block& block_view) {
 	if (drag_drop_focus == &block_view) { return; }
 	CancelDragDrop();
 	drag_drop_focus = &block_view;
 }
 
 void RootFrame::DoDragDrop(Point point) {
-	GetChild().DoDragDrop(*selection_focus, ConvertToChildPoint(point));
+	GetChildBlock().DoDragDrop(*selection_focus, ConvertToChildPoint(point));
 }
 
 void RootFrame::CancelDragDrop() {
@@ -113,10 +107,6 @@ void RootFrame::FinishDragDrop() {
 	if (drag_drop_focus) { drag_drop_focus->FinishDragDrop(*selection_focus); CancelDragDrop(); }
 }
 
-bool RootFrame::IsCtrlDown() const { return is_ctrl_down; }
-
-bool RootFrame::IsShiftDown() const { return is_shift_down; }
-
 void RootFrame::OnMouseMsg(MouseMsg msg) {
 	switch (msg.type) {
 	case MouseMsg::LeftDown: SetCapture(); SetFocus(); break;
@@ -125,7 +115,7 @@ void RootFrame::OnMouseMsg(MouseMsg msg) {
 	}
 	switch (mouse_helper.Track(msg)) {
 	case MouseHelperMsg::Down:
-		if (selection_focus && selection_focus->HitTestSelection(ConvertToDescendentPoint(msg.point, *selection_focus))) {
+		if (selection_focus && selection_focus->HitTestSelection(ConvertToDescendentPoint(msg.point, *dynamic_cast<WndObject*>(selection_focus)))) {
 			drag_drop_begin = true;
 		} else {
 			SetCaret(msg.point);
