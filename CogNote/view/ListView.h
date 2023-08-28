@@ -1,6 +1,6 @@
 #pragma once
 
-#include "WndDesign/layout/ListLayout.h"
+#include "WndDesign/layout/ListLayoutAuto.h"
 #include "WndDesign/figure/shape.h"
 
 #include "block.h"
@@ -9,9 +9,9 @@
 class PairView;
 
 
-class ListView : public Block, public ListLayout<Vertical> {
+class ListView : public Block, public ListLayoutAuto<Vertical> {
 private:
-	using Base = ListLayout;
+	using Base = ListLayoutAuto;
 
 public:
 	ListView(RootFrame& root) : Block(root), Base(gap) {}
@@ -89,6 +89,7 @@ private:
 	void UpdateDragDropCaretRegion(size_t pos);
 public:
 	void DoDragDropBefore(Block& child) { UpdateDragDropCaretRegion(GetChildIndex(dynamic_cast<WndObject&>(child))); }
+	void DoDragDropAfter(Block& child) { UpdateDragDropCaretRegion(GetChildIndex(dynamic_cast<WndObject&>(child)) + 1); }
 private:
 	virtual void DoDragDrop(Block& source, Point point) override;
 	virtual void CancelDragDrop() override;

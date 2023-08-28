@@ -97,7 +97,7 @@ void ListView::UpdateDragDropCaretRegion(size_t pos) {
 	RedrawDragDropCaretRegion();
 	drag_drop_caret_position = pos;
 	drag_drop_caret_region = pos == 0 ?
-		Rect(Point(0.0f, -drag_drop_caret_height), Size(size.width, drag_drop_caret_height)) :
+		Rect(Point(0.0f, -drag_drop_caret_height), Size(max(size.width, 10.0f), drag_drop_caret_height)) :
 		Rect(Point(0.0f, GetChildRegion(pos - 1).bottom()), Size(size.width, drag_drop_caret_height));
 	RedrawDragDropCaretRegion();
 }

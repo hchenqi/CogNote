@@ -10,9 +10,9 @@ class TextView;
 class ListView;
 
 
-class PairView : public Block, public SplitLayoutVertical<Assigned, Auto, Assigned, Auto> {
+class PairView : public Block, public SplitLayoutHorizontal<Auto, Assigned, Auto, Auto> {
 private:
-	using Base = SplitLayoutVertical;
+	using Base = SplitLayoutHorizontal;
 
 public:
 	PairView(Block& parent, std::wstring text = {});
@@ -36,7 +36,7 @@ private:
 
 	// layout
 private:
-	bool HitTestTextView(Point point) { return point.y < length_first; }
+	bool HitTestTextView(Point point) { return point.x < length_first; }
 	Point ConvertToTextViewPoint(Point point);
 	Point ConvertToListViewPoint(Point point);
 

@@ -2,13 +2,15 @@
 #include "TextView.h"
 #include "ListView.h"
 
+#include "WndDesign/frame/MinMaxFrame.h"
+#include "WndDesign/frame/CenterFrame.h"
 #include "WndDesign/frame/PaddingFrame.h"
 
 
 PairView::PairView(Block& parent, std::wstring text) :
 	Block(parent), Base{
-		child_ptr_first() = text_view = new TextView(*this, text),
-		new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new ListView(*this))
+		new CenterFrame<Auto, Assigned>(new PaddingFrame(Padding(10px), new MaxFrame(size_max, text_view = new TextView(*this, text)))),
+		new PaddingFrame(Padding(10px), list_view = new ListView(*this))
 	} {
 }
 
@@ -76,8 +78,12 @@ void PairView::DoDragDrop(Block& source, Point point) {
 			DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
 		}
 	} else {
-		if (point.y < GetRegionFirst().Center().y) {
-			GetParent().DoDragDropBefore(*this);
+		if (HitTestTextView(point)) {
+			if (point.y < GetRegionFirst().Center().y) {
+				GetParent().DoDragDropBefore(*this);
+			} else {
+				GetParent().DoDragDropAfter(*this);
+			}
 		} else {
 			DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
 		}
