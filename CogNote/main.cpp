@@ -19,33 +19,11 @@ struct MainFrameStyle : public TitleBarFrame::Style {
 };
 
 
-class ScrollBox : public SplitLayoutHorizontal<Assigned, Assigned, Auto, Assigned> {
-protected:
-	using ScrollFrame = ScrollFrame<Vertical>;
-	using Scrollbar = Scrollbar<Vertical>;
-
-public:
-	ScrollBox() : SplitLayoutHorizontal{ new Frame(), new Scrollbar() } {
-		GetScrollbar().SetScrollFrame(GetScrollFrame());
-	}
-
-protected:
-	class Frame : public RootFrame {
-		ScrollBox& GetScrollbox() const { return static_cast<ScrollBox&>(GetParent()); }
-		virtual void OnFrameOffsetUpdate() override { GetScrollbox().GetScrollbar().UpdateScrollOffset(); }
-	};
-
-protected:
-	ScrollFrame& GetScrollFrame() const { return static_cast<ScrollFrame&>(*child_first); }
-	Scrollbar& GetScrollbar() const { return static_cast<Scrollbar&>(*child_second); }
-};
-
-
 int main() {
 	global.AddWnd(
 		new TitleBarFrame{
 			MainFrameStyle(),
-			new SolidColorBackground<ScrollBox>
+			new SolidColorBackground<RootFrame>
 		}
 	);
 	global.MessageLoop();

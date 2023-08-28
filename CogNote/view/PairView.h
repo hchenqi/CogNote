@@ -37,6 +37,7 @@ private:
 	// layout
 private:
 	bool HitTestTextView(Point point) { return point.y < length_first; }
+	Point ConvertToTextViewPoint(Point point);
 	Point ConvertToListViewPoint(Point point);
 
 	// paint

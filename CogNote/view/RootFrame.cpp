@@ -12,11 +12,6 @@
 using BlockStore::block_manager;
 
 
-BEGIN_NAMESPACE(Anonymous)
-
-END_NAMESPACE(Anonymous)
-
-
 RootFrame::RootFrame() : ScrollFrame(new PaddingFrame(Padding(50, 30), child = new ListView(*this))) {
 	cursor = Cursor::Text;
 	ime.Enable(*this);

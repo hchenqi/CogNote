@@ -2,11 +2,6 @@
 #include "PairView.h"
 
 
-BEGIN_NAMESPACE(Anonymous)
-
-END_NAMESPACE(Anonymous)
-
-
 PairView& ListView::GetParent() { return static_cast<PairView&>(Block::GetParent()); }
 
 void ListView::Load() {
@@ -62,7 +57,7 @@ void ListView::UpdateSelectionRegion(size_t begin, size_t length) {
 	RedrawSelectionRegion();
 	selection_range_begin = begin; selection_range_length = length;
 	if (length == 0) { selection_region = region_empty; return; }
-	selection_region = Rect::Union(GetChildRegion(begin), GetChildRegion(begin + length - 1));
+	selection_region = Rect(Interval(0, size.width), Interval::Union(GetChildRegion(begin).Vertical(), GetChildRegion(begin + length - 1).Vertical()));
 	RedrawSelectionRegion();
 }
 
@@ -72,7 +67,7 @@ void ListView::BeginSelect(Block& child) { selection_begin = GetChildIndex(dynam
 
 void ListView::DoSelect(Point point) {
 	if (Empty()) { return; }
-	size_t index = HitTestIndex(point);
+	size_t index = point.y <= 0.0 ? 0 : HitTestIndex(point);
 	if (selection_begin == index) {
 		point -= GetChildRegion(index).point - point_zero;
 		DoChildSelect(GetChild(index), point);
@@ -110,11 +105,12 @@ void ListView::UpdateDragDropCaretRegion(size_t pos) {
 void ListView::DoDragDrop(Block& source, Point point) {
 	if (dynamic_cast<ListView*>(&source) == nullptr) {
 		if (Empty()) { return ClearDragDropFocus(); }
-		size_t index = HitTestIndex(point); point -= GetChildRegion(index).point - point_zero;
+		size_t index = point.y <= 0.0 ? 0 : HitTestIndex(point);
+		point -= GetChildRegion(index).point - point_zero;
 		return DoChildDragDrop(GetChild(index), source, point);
 	} else {
 		if (Empty() || point.y < 0.0f) { return UpdateDragDropCaretRegion(0); }
-		size_t index = HitTestIndex(point);
+		size_t index = point.y <= 0.0 ? 0 : HitTestIndex(point);
 		if (HasSelectionFocus() && PositionInSelection(index)) { return ClearDragDropFocus(); }
 		if (GetChildRegion(index).Contains(point)) {
 			point -= GetChildRegion(index).point - point_zero;

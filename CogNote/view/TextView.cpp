@@ -36,7 +36,7 @@ void TextView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
 }
 
 bool TextView::HitTestSelection(Point point) {
-	for (auto& it : selection_info) { if (it.region.Contains(point)) { return true; } }
+	for (auto& rect : selection_region_list) { if (rect.Contains(point)) { return true; } }
 	return false;
 }
 

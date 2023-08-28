@@ -23,21 +23,24 @@ void PairView::Save() {
 	block.write({}, { GetChildRef(*text_view), GetChildRef(*list_view) });
 }
 
+Point PairView::ConvertToTextViewPoint(Point point) {
+	return point_zero + (point - ConvertDescendentPoint(*text_view, point_zero));
+}
+
 Point PairView::ConvertToListViewPoint(Point point) {
 	return point_zero + (point - ConvertDescendentPoint(*list_view, point_zero));
 }
 
 void PairView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
-	DrawChild(child_first, GetRegionFirst(), figure_queue, draw_region);
-	DrawChild(child_second, GetRegionSecond(), figure_queue, draw_region);
+	Base::OnDraw(figure_queue, draw_region);
 	if (text_view->IsModified() || list_view->IsModified()) {
-		figure_queue.add(point_zero, new Circle(1.0f, text_view->HasSaveError() || list_view->HasSaveError() ? color_error : color_unsaved));
+		figure_queue.add(point_zero, new Rectangle(Size(1.0f, size.height), 1.0f, text_view->HasSaveError() || list_view->HasSaveError() ? color_error : color_unsaved));
 	}
 }
 
 void PairView::SetCaret(Point point) {
 	if (HitTestTextView(point)) {
-		SetChildCaret(GetTextView(), point);
+		SetChildCaret(GetTextView(), ConvertToTextViewPoint(point));
 	} else {
 		SetChildCaret(GetListView(), ConvertToListViewPoint(point));
 	}
@@ -50,7 +53,7 @@ void PairView::BeginSelect(Block& child) { is_text_view_selection_begin = &child
 void PairView::DoSelect(Point point) {
 	if (is_text_view_selection_begin) {
 		if (HitTestTextView(point)) {
-			DoChildSelect(GetTextView(), point);
+			DoChildSelect(GetTextView(), ConvertToTextViewPoint(point));
 		} else {
 			SelectSelf();
 		}
@@ -68,7 +71,7 @@ void PairView::SelectChild(Block& child) { SelectSelf(); }
 void PairView::DoDragDrop(Block& source, Point point) {
 	if (dynamic_cast<ListView*>(&source) == nullptr) {
 		if (HitTestTextView(point)) {
-			DoChildDragDrop(GetTextView(), source, point);
+			DoChildDragDrop(GetTextView(), source, ConvertToTextViewPoint(point));
 		} else {
 			DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
 		}
