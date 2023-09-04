@@ -32,8 +32,6 @@ private:
 private:
 	Point ConvertToDescendentPoint(Point point, WndObject& block_view);
 	Point ConvertToChildPoint(Point point) { return ConvertToDescendentPoint(point, GetChildWnd()); }
-private:
-	virtual ref_ptr<WndObject> HitTest(Point& point) override { return this; }
 
 	// focus
 public:
@@ -84,6 +82,8 @@ private:
 public:
 	bool IsCtrlDown() const { return is_ctrl_down; }
 	bool IsShiftDown() const { return is_shift_down; }
+private:
+	virtual ref_ptr<WndObject> HitTest(MouseMsg& msg) override { return this; }
 private:
 	virtual void OnMouseMsg(MouseMsg msg) override;
 	virtual void OnKeyMsg(KeyMsg msg) override;

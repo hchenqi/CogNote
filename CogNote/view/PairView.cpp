@@ -2,7 +2,8 @@
 #include "TextView.h"
 #include "ListView.h"
 
-#include "WndDesign/frame/MinMaxFrame.h"
+#include "WndDesign/frame/MaxFrame.h"
+#include "WndDesign/frame/MinFrame.h"
 #include "WndDesign/frame/CenterFrame.h"
 #include "WndDesign/frame/PaddingFrame.h"
 
@@ -10,7 +11,7 @@
 PairView::PairView(Block& parent, std::wstring text) :
 	Block(parent), Base{
 		new CenterFrame<Auto, Assigned>(new PaddingFrame(Padding(10px), new MaxFrame(size_max, text_view = new TextView(*this, text)))),
-		new PaddingFrame(Padding(10px), list_view = new ListView(*this))
+		new MinFrame(Size(30, 30), list_view = new ListView(*this))
 	} {
 }
 

@@ -24,6 +24,7 @@ RootFrame::~RootFrame() { Save(); block_manager.close_file(); }
 void RootFrame::Save() {
 	Block::SaveAll();
 	block_manager.set_root(Block::GetChildRef(GetChildBlock()));
+	Redraw(region_infinite);
 }
 
 WndObject& RootFrame::GetChildWnd() { return *child; }

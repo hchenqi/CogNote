@@ -1,8 +1,6 @@
 #include "string_helper.h"
 
 
-#pragma warning(push)
-#pragma warning(disable : 26800)  // Use of a moved from object
 std::vector<std::wstring> split_string_filtered(const std::wstring& str) {
 	std::vector<std::wstring> result;
 	std::wstring current_line;
@@ -13,14 +11,14 @@ std::vector<std::wstring> split_string_filtered(const std::wstring& str) {
 			begin = end + 1;
 			if (*end == L'\r' || *end == L'\n') {
 				if (*end == L'\r' && begin != str.end() && *begin == L'\n') { ++begin; }
-				result.push_back(std::move(current_line));
+				result.push_back(std::move(current_line)); current_line.clear();
 			}
 			end = begin;
 		} else {
 			++end;
 		}
 	}
-	result.push_back(std::move(current_line.append(begin, end)));
+	current_line.append(begin, end);
+	result.push_back(std::move(current_line));
 	return result;
 }
-#pragma warning(pop)
