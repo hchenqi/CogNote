@@ -1,9 +1,9 @@
 #pragma once
 
-#include "WndDesign/control/EditBox.h"
-
 #include "block.h"
+#include "local_data.h"
 
+#include "WndDesign/control/EditBox.h"
 #include "WndDesign/figure/text_block.h"
 #include "WndDesign/common/unicode_helper.h"
 
@@ -26,6 +26,8 @@ private:
 private:
 	virtual void Load() override;
 	virtual void Save() override;
+public:
+	text_data GetLocalData() const { return GetText(); }
 
 	// modify
 private:

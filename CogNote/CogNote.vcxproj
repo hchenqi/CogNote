@@ -163,16 +163,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="common\string_helper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="view\ListView.cpp" />
+    <ClCompile Include="view\local_data.cpp" />
     <ClCompile Include="view\PairView.cpp" />
     <ClCompile Include="view\TextView.cpp" />
     <ClCompile Include="view\block.cpp" />
     <ClCompile Include="view\RootFrame.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\string_helper.h" />
+    <ClInclude Include="view\local_data.h" />
     <ClInclude Include="view\ListView.h" />
     <ClInclude Include="view\PairView.h" />
     <ClInclude Include="view\TextView.h" />

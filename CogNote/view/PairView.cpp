@@ -8,10 +8,10 @@
 #include "WndDesign/frame/PaddingFrame.h"
 
 
-PairView::PairView(Block& parent, std::wstring text) :
+PairView::PairView(Block& parent, pair_data data) :
 	Block(parent), Base{
-		new CenterFrame<Auto, Assigned>(new PaddingFrame(Padding(10px), new MaxFrame(size_max, text_view = new TextView(*this, text)))),
-		new MinFrame(Size(30, 30), list_view = new ListView(*this))
+		new CenterFrame<Auto, Assigned>(new PaddingFrame(Padding(10px), new MaxFrame(size_max, text_view = new TextView(*this, data.text)))),
+		new MinFrame(Size(30, 30), list_view = new ListView(*this, data.list))
 	} {
 }
 
@@ -25,6 +25,8 @@ void PairView::Load() {
 void PairView::Save() {
 	block.write({}, { GetChildRef(*text_view), GetChildRef(*list_view) });
 }
+
+pair_data PairView::GetLocalData() const { return { text_view->GetLocalData(), list_view->GetLocalData() }; }
 
 Point PairView::ConvertToTextViewPoint(Point point) {
 	return point_zero + (point - ConvertDescendentPoint(*text_view, point_zero));
@@ -145,7 +147,7 @@ TextView& PairView::MergeAfterSelf() {
 	}
 }
 
-TextView& PairView::InsertAfterSelf(std::vector<std::wstring> text_list) {
+TextView& PairView::InsertAfterSelf(list_data text_list) {
 	return GetParent().InsertAfter(*this, text_list).GetTextView();
 }
 

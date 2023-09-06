@@ -1,9 +1,10 @@
 #pragma once
 
+#include "block.h"
+#include "local_data.h"
+
 #include "WndDesign/layout/ListLayoutAuto.h"
 #include "WndDesign/figure/shape.h"
-
-#include "block.h"
 
 
 class PairView;
@@ -16,6 +17,7 @@ private:
 public:
 	ListView(RootFrame& root) : Block(root), Base(gap) {}
 	ListView(Block& parent) : Block(parent), Base(gap) {}
+	ListView(Block& parent, list_data data) : ListView(parent) { if (!data.empty()) { InsertChild(0, data); } }
 
 	// context
 public:
@@ -27,6 +29,9 @@ private:
 private:
 	virtual void Load() override;
 	virtual void Save() override;
+public:
+	list_data GetLocalData(size_t begin, size_t length) const;
+	list_data GetLocalData() const { return GetLocalData(0, Length()); }
 
 	// style
 private:
@@ -34,13 +39,13 @@ private:
 
 	// child
 private:
-	PairView& GetChild(WndObject& child);
-	PairView& GetChild(size_t index) { return GetChild(Base::GetChild(index)); }
+	PairView& GetChild(WndObject& child) const;
+	PairView& GetChild(size_t index) const { return GetChild(Base::GetChild(index)); }
 
 	// modify
 private:
 	PairView& InsertChild(size_t index, std::wstring text);
-	PairView& InsertChild(size_t index, std::vector<std::wstring> text_list);
+	PairView& InsertChild(size_t index, list_data text_list);
 	PairView& InsertChild(size_t index, std::unique_ptr<PairView> pair_view);
 	void InsertChild(size_t index, std::vector<std::unique_ptr<PairView>> pair_view_list);
 	std::unique_ptr<PairView> ExtractChild(size_t index);
@@ -111,12 +116,17 @@ public:
 	PairView& MergeBeforeChild(PairView& child);  // text backspace
 	PairView& MergeFrontChild();  // text delete
 	PairView& MergeAfterChild(PairView& child);  // text delete
-	PairView& InsertAfter(PairView& child, std::vector<std::wstring> text_list);  // text paste
+	PairView& InsertAfter(PairView& child, list_data text_list);  // text paste
 
 	// input
 private:
 	void Delete();
 	void Indent();
+
+	// clipboard
+protected:
+	void Cut();
+	void Copy();
 
 	// message
 private:

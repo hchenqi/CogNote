@@ -27,13 +27,13 @@
     <ClCompile Include="view\TextView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="common\string_helper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="view\ListView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="view\PairView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="view\local_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,13 +50,13 @@
     <ClInclude Include="view\message\mouse_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\string_helper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="view\ListView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="view\PairView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="view\local_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

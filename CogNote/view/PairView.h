@@ -1,9 +1,10 @@
 #pragma once
 
+#include "block.h"
+#include "local_data.h"
+
 #include "WndDesign/layout/SplitLayout.h"
 #include "WndDesign/figure/shape.h"
-
-#include "block.h"
 
 
 class TextView;
@@ -15,7 +16,7 @@ private:
 	using Base = SplitLayoutHorizontal;
 
 public:
-	PairView(Block& parent, std::wstring text = {});
+	PairView(Block& parent, pair_data data);
 
 	// context
 private:
@@ -25,6 +26,8 @@ private:
 private:
 	virtual void Load() override;
 	virtual void Save() override;
+public:
+	pair_data GetLocalData() const;
 
 	// child
 private:
@@ -78,7 +81,7 @@ public:
 	TextView& IndentSelfShift();  // text indent shift
 	TextView& MergeBeforeSelf();  // text backspace
 	TextView& MergeAfterSelf();  // text delete
-	TextView& InsertAfterSelf(std::vector<std::wstring> text_list);  // text paste
+	TextView& InsertAfterSelf(list_data text_list);  // text paste
 public:
 	ListView& InsertBack(std::vector<std::unique_ptr<PairView>> pair_view_list);  // list indent
 	ListView& InsertAfterSelf(std::vector<std::unique_ptr<PairView>> pair_view_list);  // list indent shift

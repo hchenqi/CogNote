@@ -1,6 +1,8 @@
 #include "ListView.h"
 #include "PairView.h"
 
+#include "WndDesign/system/clipboard.h"
+
 
 PairView& ListView::GetParent() { return static_cast<PairView&>(Block::GetParent()); }
 
@@ -8,7 +10,7 @@ void ListView::Load() {
 	std::vector<block_ref> data = block.read().second;
 	std::vector<child_ptr> children; children.reserve(data.size());
 	for (auto& ref : data) {
-		alloc_ptr<PairView> child = new PairView(*this);
+		alloc_ptr<PairView> child = new PairView(*this, {});
 		LoadChild(*child, ref);
 		children.emplace_back(std::move(child));
 	}
@@ -24,7 +26,15 @@ void ListView::Save() {
 	block.write({}, data);
 }
 
-PairView& ListView::GetChild(WndObject& child) { return static_cast<PairView&>(child); }
+local_data ListView::GetLocalData(size_t begin, size_t length) const {
+	local_data result;
+	for (size_t index = begin; index < begin + length && index < Length(); ++index) {
+		result.push_back(GetChild(index).GetLocalData());
+	}
+	return result;
+}
+
+PairView& ListView::GetChild(WndObject& child) const { return static_cast<PairView&>(child); }
 
 void ListView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
 	Base::OnDraw(figure_queue, draw_region);
@@ -133,12 +143,12 @@ void ListView::FinishDragDrop(Block& source) {
 }
 
 PairView& ListView::InsertChild(size_t index, std::wstring text) {
-	Base::InsertChild(index, new PairView(*this, text));
+	Base::InsertChild(index, new PairView(*this, { text }));
 	DataModified();
 	return GetChild(index);
 }
 
-PairView& ListView::InsertChild(size_t index, std::vector<std::wstring> text_list) {
+PairView& ListView::InsertChild(size_t index, list_data text_list) {
 	std::vector<child_ptr> children; children.reserve(text_list.size());
 	for (auto& it : text_list) { children.emplace_back(new PairView(*this, std::move(it))); }
 	Base::InsertChild(index, std::move(children));
@@ -245,7 +255,7 @@ PairView& ListView::MergeAfterChild(PairView& child) {
 	}
 }
 
-PairView& ListView::InsertAfter(PairView& child, std::vector<std::wstring> text_list) {
+PairView& ListView::InsertAfter(PairView& child, list_data text_list) {
 	return InsertChild(GetChildIndex(child) + 1, text_list);
 }
 
@@ -277,24 +287,26 @@ void ListView::Indent() {
 	}
 }
 
+void ListView::Cut() {
+	Copy();
+	Delete();
+}
+
+void ListView::Copy() {
+	SetClipboardData(convert_to_string(GetLocalData(selection_range_begin, selection_range_length)));
+}
+
 void ListView::OnKeyMsg(KeyMsg msg) {
 	switch (msg.type) {
 	case KeyMsg::KeyDown:
 		switch (msg.key) {
-		//case Key::Enter: Split(); break;
 		case Key::Tab: Indent(); break;
 		case Key::Backspace:
 		case Key::Delete: Delete(); break;
 
-		//case CharKey('X'): if (IsCtrlDown()) { Cut(); } break;
-		//case CharKey('C'): if (IsCtrlDown()) { Copy(); } break;
-		//case CharKey('V'): if (IsCtrlDown()) { Paste(); } break;
+		case CharKey('X'): if (IsCtrlDown()) { Cut(); } break;
+		case CharKey('C'): if (IsCtrlDown()) { Copy(); } break;
 		}
 		break;
-	//case KeyMsg::Char:
-	//	if (IsCtrlDown()) { break; }
-	//	if (!iswcntrl(msg.ch)) { ; };
-	//	break;
-	//case KeyMsg::ImeBegin: ; break;
 	}
 }

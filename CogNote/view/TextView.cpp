@@ -5,8 +5,6 @@
 #include "WndDesign/message/ime.h"
 #include "WndDesign/system/clipboard.h"
 
-#include "../common/string_helper.h"
-
 
 BEGIN_NAMESPACE(Anonymous)
 
@@ -134,19 +132,12 @@ void TextView::Delete(bool is_backspace) {
 
 void TextView::Paste() {
 	std::wstring str; GetClipboardData(str);
-	std::vector<std::wstring> text_list = split_string_filtered(str);
-	if (text_list.size() == 1) {
-		Insert(text_list.front());
+	local_data text_list = convert_from_string(str);
+	const pair_data& front = text_list.front();
+	if (text_list.size() == 1 && front.list.empty()) {
+		Insert(front.text);
 	} else {
-		if (HasSelectionFocus()) {
-			str = TextBox::Substr(selection_range.right());
-			TextBox::Replace(TextRange(selection_range.left(), -1), text_list.front());
-		} else {
-			str = TextBox::Substr(caret_position);
-			TextBox::Replace(TextRange(caret_position, -1), text_list.front());
-		}
-		text_list.erase(text_list.begin()); text_list.back().insert(0, str);
-		GetParent().InsertAfterSelf(text_list).SetCaret(str.size());
+		GetParent().InsertAfterSelf(text_list);
 	}
 }
 
