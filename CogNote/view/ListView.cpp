@@ -262,6 +262,7 @@ PairView& ListView::InsertAfter(PairView& child, list_data text_list) {
 void ListView::Delete() {
 	ClearSelectionFocus();
 	EraseChild(selection_range_begin, selection_range_length);
+	DataModified();
 	if (selection_range_begin >= Length()) {
 		if (selection_range_begin == 0) {
 			SetCaret(point_zero);
