@@ -6,10 +6,9 @@
 
 PairView& ListView::GetParent() { return static_cast<PairView&>(Block::GetParent()); }
 
-void ListView::Load() {
-	std::vector<block_ref> data = block.read().second;
-	std::vector<child_ptr> children; children.reserve(data.size());
-	for (auto& ref : data) {
+void ListView::Set(const value_type& value) {
+	std::vector<child_ptr> children; children.reserve(value.size());
+	for (auto& ref : value) {
 		alloc_ptr<PairView> child = new PairView(*this, {});
 		LoadChild(*child, ref);
 		children.emplace_back(std::move(child));
@@ -18,12 +17,12 @@ void ListView::Load() {
 	Base::InsertChild(0, std::move(children));
 }
 
-void ListView::Save() {
+ListView::value_type ListView::Get() { 
 	std::vector<block_ref> data; data.reserve(Length());
 	for (size_t index = 0; index < Length(); index++) {
 		data.push_back(GetChildRef(GetChild(index)));
 	}
-	block.write({}, data);
+	return data;
 }
 
 local_data ListView::GetLocalData(size_t begin, size_t length) const {

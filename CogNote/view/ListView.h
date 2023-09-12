@@ -10,13 +10,13 @@
 class PairView;
 
 
-class ListView : public Block, public ListLayoutAuto<Vertical> {
+class ListView : public BlockView<std::vector<block_ref>>, public ListLayoutAuto<Vertical> {
 private:
 	using Base = ListLayoutAuto;
 
 public:
-	ListView(RootFrame& root) : Block(root), Base(gap) {}
-	ListView(Block& parent) : Block(parent), Base(gap) {}
+	ListView(RootFrame& root) : BlockView(root), Base(gap) {}
+	ListView(Block& parent) : BlockView(parent), Base(gap) {}
 	ListView(Block& parent, list_data data) : ListView(parent) { if (!data.empty()) { InsertChild(0, data); } }
 
 	// context
@@ -27,8 +27,8 @@ private:
 
 	// data
 private:
-	virtual void Load() override;
-	virtual void Save() override;
+	virtual void Set(const value_type& value) override;
+	virtual value_type Get() override;
 public:
 	list_data GetLocalData(size_t begin, size_t length) const;
 	list_data GetLocalData() const { return GetLocalData(0, Length()); }

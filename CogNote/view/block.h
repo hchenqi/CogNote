@@ -33,7 +33,7 @@ protected:
 
 	// data
 protected:
-	block block;
+	block<> block;
 private:
 	bool modified = false;
 	bool save_error = false;
@@ -101,4 +101,22 @@ protected:
 	bool IsShiftDown() const;
 protected:
 	virtual void OnKeyMsg(KeyMsg msg) {}
+};
+
+
+template<class T>
+class BlockView : public Block {
+protected:
+	using value_type = T;
+public:
+	BlockView(RootFrame& root) : Block(root) {}
+	BlockView(Block& parent) : Block(parent) {}
+private:
+	BlockStore::block<value_type>& GetBlock() { return static_cast<BlockStore::block<value_type>&>(block); }
+private:
+	virtual void Load() override final { Set(GetBlock().read()); }
+	virtual void Save() override final { GetBlock().write(Get()); }
+protected:
+	virtual void Set(const value_type& value) {}
+	virtual value_type Get() { return {}; }
 };

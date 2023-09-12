@@ -11,7 +11,7 @@ class TextView;
 class ListView;
 
 
-class PairView : public Block, public SplitLayoutHorizontal<Auto, Assigned, Auto, Auto> {
+class PairView : public BlockView<std::pair<block_ref, block_ref>>, public SplitLayoutHorizontal<Auto, Assigned, Auto, Auto> {
 private:
 	using Base = SplitLayoutHorizontal;
 
@@ -24,8 +24,8 @@ private:
 
 	// data
 private:
-	virtual void Load() override;
-	virtual void Save() override;
+	virtual void Set(const value_type& value) override;
+	virtual value_type Get() override;
 public:
 	pair_data GetLocalData() const;
 

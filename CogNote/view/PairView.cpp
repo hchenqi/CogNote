@@ -9,7 +9,7 @@
 
 
 PairView::PairView(Block& parent, pair_data data) :
-	Block(parent), Base{
+	BlockView(parent), Base{
 		new CenterFrame<Auto, Assigned>(new PaddingFrame(Padding(10px), new MaxFrame(size_max, text_view = new TextView(*this, data.text)))),
 		new MinFrame(Size(30, 30), list_view = new ListView(*this, data.list))
 	} {
@@ -17,13 +17,12 @@ PairView::PairView(Block& parent, pair_data data) :
 
 ListView& PairView::GetParent() { return static_cast<ListView&>(Block::GetParent()); }
 
-void PairView::Load() {
-	std::vector<block_ref> data = block.read().second; data.resize(2);
-	LoadChild(*text_view, data[0]); LoadChild(*list_view, data[1]);
+void PairView::Set(const value_type& value) {
+	LoadChild(*text_view, value.first); LoadChild(*list_view, value.second);
 }
 
-void PairView::Save() {
-	block.write({}, { GetChildRef(*text_view), GetChildRef(*list_view) });
+PairView::value_type PairView::Get() {
+	return { GetChildRef(*text_view), GetChildRef(*list_view) };
 }
 
 pair_data PairView::GetLocalData() const { return { text_view->GetLocalData(), list_view->GetLocalData() }; }

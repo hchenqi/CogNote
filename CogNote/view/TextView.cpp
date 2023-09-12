@@ -18,13 +18,13 @@ struct Style : public TextView::Style {
 END_NAMESPACE(Anonymous)
 
 
-TextView::TextView(Block& parent, std::wstring text) : Block(parent), EditBox(Style(), text) {}
+TextView::TextView(Block& parent, std::wstring text) : BlockView(parent), EditBox(Style(), text) {}
 
 PairView& TextView::GetParent() { return static_cast<PairView&>(Block::GetParent()); }
 
-void TextView::Load() { Deserialize(block.read().first, text); EditBox::OnTextUpdate(); }
+void TextView::Set(const value_type& value) { text = value; EditBox::OnTextUpdate(); }
 
-void TextView::Save() { block.write(Serialize(text), {}); }
+TextView::value_type TextView::Get() { return text; }
 
 void TextView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
 	EditBox::OnDraw(figure_queue, draw_region);

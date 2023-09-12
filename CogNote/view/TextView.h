@@ -14,7 +14,7 @@ using namespace WndDesign;
 class PairView;
 
 
-class TextView : public Block, public EditBox {
+class TextView : public BlockView<std::wstring>, public EditBox {
 public:
 	TextView(Block& parent, std::wstring text);
 
@@ -24,8 +24,8 @@ private:
 
 	// data
 private:
-	virtual void Load() override;
-	virtual void Save() override;
+	virtual void Set(const value_type& value) override;
+	virtual value_type Get() override;
 public:
 	text_data GetLocalData() const { return GetText(); }
 
