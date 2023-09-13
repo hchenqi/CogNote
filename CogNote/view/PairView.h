@@ -11,9 +11,9 @@ class TextView;
 class ListView;
 
 
-class PairView : public BlockView<std::pair<block_ref, block_ref>>, public SplitLayoutHorizontal<Auto, Assigned, Auto, Auto> {
+class PairView : public BlockView<std::pair<block_ref, block_ref>>, public SplitLayoutVertical<Assigned, Auto, Assigned, Auto> {
 private:
-	using Base = SplitLayoutHorizontal;
+	using Base = SplitLayoutVertical;
 
 public:
 	PairView(Block& parent, pair_data data);
@@ -39,7 +39,7 @@ private:
 
 	// layout
 private:
-	bool HitTestTextView(Point point) { return point.x < length_first; }
+	bool HitTestTextView(Point point) { return point.y < length_first; }
 	Point ConvertToTextViewPoint(Point point);
 	Point ConvertToListViewPoint(Point point);
 

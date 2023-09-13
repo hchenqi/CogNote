@@ -108,8 +108,7 @@ void RootFrame::OnMouseMsg(MouseMsg msg) {
 	switch (msg.type) {
 	case MouseMsg::LeftDown: SetCapture(); SetFocus(); break;
 	case MouseMsg::LeftUp: ReleaseCapture(); break;
-	case MouseMsg::WheelVertical: Scroll(Vector(0.0f, (float)-msg.wheel_delta)); break;
-	case MouseMsg::WheelHorizontal: Scroll(Vector((float)-msg.wheel_delta, 0.0f)); break;
+	case MouseMsg::WheelVertical: Scroll((float)-msg.wheel_delta); break;
 	}
 	switch (mouse_helper.Track(msg)) {
 	case MouseHelperMsg::Down:

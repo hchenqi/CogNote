@@ -3,16 +3,16 @@
 #include "block.h"
 #include "local_data.h"
 
-#include "WndDesign/layout/ListLayoutAuto.h"
+#include "WndDesign/layout/ListLayout.h"
 #include "WndDesign/figure/shape.h"
 
 
 class PairView;
 
 
-class ListView : public BlockView<std::vector<block_ref>>, public ListLayoutAuto<Vertical> {
+class ListView : public BlockView<std::vector<block_ref>>, public ListLayout<Vertical> {
 private:
-	using Base = ListLayoutAuto;
+	using Base = ListLayout;
 
 public:
 	ListView(RootFrame& root) : BlockView(root), Base(gap) {}
@@ -94,7 +94,6 @@ private:
 	void UpdateDragDropCaretRegion(size_t pos);
 public:
 	void DoDragDropBefore(Block& child) { UpdateDragDropCaretRegion(GetChildIndex(dynamic_cast<WndObject&>(child))); }
-	void DoDragDropAfter(Block& child) { UpdateDragDropCaretRegion(GetChildIndex(dynamic_cast<WndObject&>(child)) + 1); }
 private:
 	virtual void DoDragDrop(Block& source, Point point) override;
 	virtual void CancelDragDrop() override;

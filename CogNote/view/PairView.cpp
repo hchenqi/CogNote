@@ -2,16 +2,13 @@
 #include "TextView.h"
 #include "ListView.h"
 
-#include "WndDesign/frame/MaxFrame.h"
-#include "WndDesign/frame/MinFrame.h"
-#include "WndDesign/frame/CenterFrame.h"
 #include "WndDesign/frame/PaddingFrame.h"
 
 
 PairView::PairView(Block& parent, pair_data data) :
 	BlockView(parent), Base{
-		new CenterFrame<Auto, Assigned>(new PaddingFrame(Padding(10px), new MaxFrame(size_max, text_view = new TextView(*this, data.text)))),
-		new MinFrame(Size(30, 30), list_view = new ListView(*this, data.list))
+		child_ptr_first() = text_view = new TextView(*this, data.text),
+		new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new ListView(*this, data.list))
 	} {
 }
 
@@ -80,12 +77,8 @@ void PairView::DoDragDrop(Block& source, Point point) {
 			DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
 		}
 	} else {
-		if (HitTestTextView(point)) {
-			if (point.y < GetRegionFirst().Center().y) {
-				GetParent().DoDragDropBefore(*this);
-			} else {
-				GetParent().DoDragDropAfter(*this);
-			}
+		if (point.y < GetRegionFirst().Center().y) {
+			GetParent().DoDragDropBefore(*this);
 		} else {
 			DoChildDragDrop(GetListView(), source, ConvertToListViewPoint(point));
 		}

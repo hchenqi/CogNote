@@ -12,7 +12,7 @@ class Block;
 class ListView;
 
 
-class RootFrame : public ScrollFrame<Bidirectional> {
+class RootFrame : public ScrollFrame<Vertical> {
 public:
 	RootFrame();
 	~RootFrame();
