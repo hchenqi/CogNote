@@ -2,6 +2,7 @@
 
 #include "block.h"
 #include "local_data.h"
+#include "block_view.h"
 
 #include "WndDesign/control/EditBox.h"
 #include "WndDesign/figure/text_block.h"
@@ -14,13 +15,9 @@ using namespace WndDesign;
 class PairView;
 
 
-class TextView : public BlockView<std::wstring>, public EditBox {
+class TextView : public Block<std::wstring>, public BlockView, public EditBox {
 public:
-	TextView(Block& parent, std::wstring text);
-
-	// parent
-private:
-	PairView& GetParent();
+	TextView(BlockView& parent, std::wstring text);
 
 	// data
 private:
@@ -28,6 +25,10 @@ private:
 	virtual value_type Get() override;
 public:
 	text_data GetLocalData() const { return GetText(); }
+
+	// parent
+private:
+	PairView& GetParent();
 
 	// modify
 private:
@@ -47,7 +48,7 @@ private:
 	// selection
 private:
 	virtual bool HitTestSelection(Point point) override;
-	virtual void BeginSelect(Block& child) override {}
+	virtual void BeginSelect(BlockView& child) override {}
 	virtual void DoSelect(Point point) override { EditBox::DoSelect(point); SetSelectionFocus(); }
 	virtual void SelectMore() override;
 	virtual void ClearSelection() override { EditBox::ClearSelection(); }
@@ -62,9 +63,9 @@ private:
 private:
 	void RedrawDragDropCaretRegion();
 private:
-	virtual void DoDragDrop(Block& source, Point point) override;
+	virtual void DoDragDrop(BlockView& source, Point point) override;
 	virtual void CancelDragDrop() override;
-	virtual void FinishDragDrop(Block& source) override;
+	virtual void FinishDragDrop(BlockView& source) override;
 
 	// route
 public:

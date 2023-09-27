@@ -5,14 +5,12 @@
 #include "WndDesign/frame/PaddingFrame.h"
 
 
-PairView::PairView(Block& parent, pair_data data) :
+PairView::PairView(BlockView& parent, pair_data data) :
 	BlockView(parent), Base{
 		child_ptr_first() = text_view = new TextView(*this, data.text),
 		new PaddingFrame(Padding(20px, 1px, 0, 1px), list_view = new ListView(*this, data.list))
 	} {
 }
-
-ListView& PairView::GetParent() { return static_cast<ListView&>(Block::GetParent()); }
 
 void PairView::Set(const value_type& value) {
 	LoadChild(*text_view, value.first); LoadChild(*list_view, value.second);
@@ -23,6 +21,8 @@ PairView::value_type PairView::Get() {
 }
 
 pair_data PairView::GetLocalData() const { return { text_view->GetLocalData(), list_view->GetLocalData() }; }
+
+ListView& PairView::GetParent() { return static_cast<ListView&>(BlockView::GetParent()); }
 
 Point PairView::ConvertToTextViewPoint(Point point) {
 	return point_zero + (point - ConvertDescendentPoint(*text_view, point_zero));
@@ -49,7 +49,7 @@ void PairView::SetCaret(Point point) {
 
 void PairView::SetTextViewCaret(size_t pos) { GetTextView().SetCaret(pos); }
 
-void PairView::BeginSelect(Block& child) { is_text_view_selection_begin = &child == &GetTextView(); }
+void PairView::BeginSelect(BlockView& child) { is_text_view_selection_begin = &child == &GetTextView(); }
 
 void PairView::DoSelect(Point point) {
 	if (is_text_view_selection_begin) {
@@ -67,9 +67,9 @@ void PairView::DoSelect(Point point) {
 	}
 }
 
-void PairView::SelectChild(Block& child) { SelectSelf(); }
+void PairView::SelectChild(BlockView& child) { SelectSelf(); }
 
-void PairView::DoDragDrop(Block& source, Point point) {
+void PairView::DoDragDrop(BlockView& source, Point point) {
 	if (dynamic_cast<ListView*>(&source) == nullptr) {
 		if (HitTestTextView(point)) {
 			DoChildDragDrop(GetTextView(), source, ConvertToTextViewPoint(point));

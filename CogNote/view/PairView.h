@@ -2,6 +2,7 @@
 
 #include "block.h"
 #include "local_data.h"
+#include "block_view.h"
 
 #include "WndDesign/layout/SplitLayout.h"
 #include "WndDesign/figure/shape.h"
@@ -11,16 +12,12 @@ class TextView;
 class ListView;
 
 
-class PairView : public BlockView<std::pair<block_ref, block_ref>>, public SplitLayoutVertical<Assigned, Auto, Assigned, Auto> {
+class PairView : public Block<std::pair<block_ref, block_ref>>, public BlockView, public SplitLayoutVertical<Assigned, Auto, Assigned, Auto> {
 private:
 	using Base = SplitLayoutVertical;
 
 public:
-	PairView(Block& parent, pair_data data);
-
-	// context
-private:
-	ListView& GetParent();
+	PairView(BlockView& parent, pair_data data);
 
 	// data
 private:
@@ -28,6 +25,10 @@ private:
 	virtual value_type Get() override;
 public:
 	pair_data GetLocalData() const;
+
+	// parent
+private:
+	ListView& GetParent();
 
 	// child
 private:
@@ -60,13 +61,13 @@ public:
 private:
 	bool is_text_view_selection_begin = false;
 private:
-	virtual void BeginSelect(Block& child) override;
+	virtual void BeginSelect(BlockView& child) override;
 	virtual void DoSelect(Point point) override;
-	virtual void SelectChild(Block& child) override;
+	virtual void SelectChild(BlockView& child) override;
 
 	// drag and drop
 private:
-	virtual void DoDragDrop(Block& source, Point point) override;
+	virtual void DoDragDrop(BlockView& source, Point point) override;
 
 	// route
 public:

@@ -1,39 +1,26 @@
 #pragma once
 
-#include "WndDesign/window/WndObject.h"
-
 #include "BlockStore/block.h"
 
 
-using namespace WndDesign;
 using namespace BlockStore;
 
 
-class RootFrame;
+template<class T = void>
+class Block;
 
 
-class Block {
+template<>
+class Block<> {
 private:
 	friend class RootFrame;
 
 public:
-	Block(RootFrame& root) : root(root), parent(nullptr) { DataModified(); }
-	Block(Block& parent) : root(parent.root), parent(&parent) { DataModified(); }
-	~Block();
+	Block() { DataModified(); }
+	~Block() { ResetModified(); }
 
-	// context
-private:
-	RootFrame& root;
-	ref_ptr<Block> parent;
 protected:
-	bool IsRoot() const { return parent == nullptr; }
-	Block& GetParent() { if (IsRoot()) { throw std::invalid_argument("window is a root view"); } return *parent; }
-protected:
-	void SetChildParent(Block& child) { child.parent = this; }
-
-	// data
-protected:
-	block<> block;
+	block<> ref;
 private:
 	bool modified = false;
 	bool save_error = false;
@@ -45,77 +32,25 @@ protected:
 	void ResetModified();
 	void DoSave();
 protected:
-	static void LoadChild(Block& child, block_ref ref) { child.block = ref; child.Load(); child.ResetModified(); }
-	static block_ref GetChildRef(Block& child) { if (child.block.empty()) { child.DoSave(); } return child.block; }
+	static void LoadChild(Block& child, block_ref ref) { child.ref = ref; child.Load(); child.ResetModified(); }
+	static block_ref GetChildRef(Block& child) { if (child.ref.empty()) { child.DoSave(); } return child.ref; }
 protected:
 	virtual void Load() {}
 	virtual void Save() {}
 private:
 	static void SaveAll();
-
-	// caret
-protected:
-	bool HasCaretFocus() const;
-	void SetCaretFocus();
-protected:
-	static void SetChildCaret(Block& child, Point point) { child.SetCaret(point); }
-protected:
-	virtual void SetCaret(Point point) {}
-	virtual void ClearCaret() {}
-
-	// selection
-protected:
-	bool HasSelectionFocus() const;
-	void SetSelectionFocus();
-	void ClearSelectionFocus();
-private:
-	void BeginSelect() { BeginSelect(*this); BeginSelectSelf(); }
-	void BeginSelectSelf() { if (!IsRoot()) { parent->BeginSelect(*this); parent->BeginSelectSelf(); } }
-protected:
-	static void DoChildSelect(Block& child, Point point) { child.DoSelect(point); };
-	void SelectSelf() { if (!IsRoot()) { parent->SelectChild(*this); } }
-protected:
-	virtual bool HitTestSelection(Point point) { return false; }
-	virtual void BeginSelect(Block& child) {}
-	virtual void DoSelect(Point point) {}
-	virtual void FinishSelect() {}
-	virtual void SelectChild(Block& child) {}
-	virtual void SelectMore() { SelectSelf(); }
-	virtual void ClearSelection() {}
-
-	// drag and drop
-protected:
-	bool HasDragDropFocus() const;
-	void SetDragDropFocus();
-	void ClearDragDropFocus();
-protected:
-	static void DoChildDragDrop(Block& child, Block& source, Point point) { child.DoDragDrop(source, point); };
-protected:
-	virtual void DoDragDrop(Block& source, Point point) {}
-	virtual void CancelDragDrop() {}
-	virtual void FinishDragDrop(Block& source) {}
-
-	// message
-protected:
-	bool IsCtrlDown() const;
-	bool IsShiftDown() const;
-protected:
-	virtual void OnKeyMsg(KeyMsg msg) {}
 };
 
 
 template<class T>
-class BlockView : public Block {
+class Block : public Block<> {
 protected:
 	using value_type = T;
-public:
-	BlockView(RootFrame& root) : Block(root) {}
-	BlockView(Block& parent) : Block(parent) {}
 private:
-	BlockStore::block<value_type>& GetBlock() { return static_cast<BlockStore::block<value_type>&>(block); }
+	block<value_type>& GetRef() { return static_cast<block<value_type>&>(ref); }
 private:
-	virtual void Load() override final { Set(GetBlock().read()); }
-	virtual void Save() override final { GetBlock().write(Get()); }
+	virtual void Load() override final { Set(GetRef().read()); }
+	virtual void Save() override final { GetRef().write(Get()); }
 protected:
 	virtual void Set(const value_type& value) {}
 	virtual value_type Get() { return {}; }

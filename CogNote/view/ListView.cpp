@@ -4,8 +4,6 @@
 #include "WndDesign/system/clipboard.h"
 
 
-PairView& ListView::GetParent() { return static_cast<PairView&>(Block::GetParent()); }
-
 void ListView::Set(const value_type& value) {
 	std::vector<child_ptr> children; children.reserve(value.size());
 	for (auto& ref : value) {
@@ -32,6 +30,8 @@ local_data ListView::GetLocalData(size_t begin, size_t length) const {
 	}
 	return result;
 }
+
+PairView& ListView::GetParent() { return static_cast<PairView&>(BlockView::GetParent()); }
 
 PairView& ListView::GetChild(WndObject& child) const { return static_cast<PairView&>(child); }
 
@@ -72,7 +72,7 @@ void ListView::UpdateSelectionRegion(size_t begin, size_t length) {
 
 bool ListView::HitTestSelection(Point point) { return selection_region.Contains(point); }
 
-void ListView::BeginSelect(Block& child) { selection_begin = GetChildIndex(dynamic_cast<WndObject&>(child)); }
+void ListView::BeginSelect(BlockView& child) { selection_begin = GetChildIndex(dynamic_cast<WndObject&>(child)); }
 
 void ListView::DoSelect(Point point) {
 	if (Empty()) { return; }
@@ -88,7 +88,7 @@ void ListView::DoSelect(Point point) {
 	}
 }
 
-void ListView::SelectChild(Block& child) { UpdateSelectionRegion(GetChildIndex(dynamic_cast<WndObject&>(child)), 1); }
+void ListView::SelectChild(BlockView& child) { UpdateSelectionRegion(GetChildIndex(dynamic_cast<WndObject&>(child)), 1); }
 
 void ListView::SelectMore() {
 	if (selection_range_begin == 0 && selection_range_length == Length()) { return SelectSelf(); }
@@ -111,7 +111,7 @@ void ListView::UpdateDragDropCaretRegion(size_t pos) {
 	RedrawDragDropCaretRegion();
 }
 
-void ListView::DoDragDrop(Block& source, Point point) {
+void ListView::DoDragDrop(BlockView& source, Point point) {
 	if (dynamic_cast<ListView*>(&source) == nullptr) {
 		if (Empty()) { return ClearDragDropFocus(); }
 		size_t index = point.y <= 0.0 ? 0 : HitTestIndex(point);
@@ -133,7 +133,7 @@ void ListView::CancelDragDrop() {
 	RedrawDragDropCaretRegion(); drag_drop_caret_region = region_empty;
 }
 
-void ListView::FinishDragDrop(Block& source) {
+void ListView::FinishDragDrop(BlockView& source) {
 	ClearSelectionFocus();
 	ListView& list_view = static_cast<ListView&>(source);
 	if (&list_view == this && drag_drop_caret_position > selection_range_begin) { drag_drop_caret_position -= selection_range_length; }

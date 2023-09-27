@@ -2,6 +2,7 @@
 #include "ListView.h"
 
 #include "block.h"
+#include "block_view.h"
 
 #include "BlockStore/block_manager.h"
 
@@ -16,47 +17,50 @@ RootFrame::RootFrame() : ScrollFrame(new PaddingFrame(Padding(50, 30), child = n
 	cursor = Cursor::Text;
 	ime.Enable(*this);
 	block_manager.open_file("CogNote.db");
-	Block::LoadChild(GetChildBlock(), block_manager.get_root());
+	Block<>::LoadChild(GetChild(), block_manager.get_root());
 }
 
 RootFrame::~RootFrame() { Save(); block_manager.close_file(); }
 
 void RootFrame::Save() {
-	Block::SaveAll();
-	block_manager.set_root(Block::GetChildRef(GetChildBlock()));
+	Block<>::SaveAll();
+	block_manager.set_root(Block<>::GetChildRef(GetChild()));
 	block_manager.collect_garbage();
 	Redraw(region_infinite);
 }
 
-WndObject& RootFrame::GetChildWnd() { return *child; }
+ListView& RootFrame::GetChild() { return *child; }
+BlockView& RootFrame::GetChildView() { return GetChild(); }
 
-Block& RootFrame::GetChildBlock() { return *child; }
-
-Point RootFrame::ConvertToDescendentPoint(Point point, WndObject& block_view) {
-	return point_zero + (point - ConvertDescendentPoint(block_view, point_zero));
+Point RootFrame::ConvertToDescendentPoint(Point point, WndObject& wnd) {
+	return point_zero + (point - ConvertDescendentPoint(wnd, point_zero));
 }
 
-void RootFrame::CheckFocus(Block& block_view) {
+Point RootFrame::ConvertToChildPoint(Point point) {
+	return ConvertToDescendentPoint(point, GetChild());
+}
+
+void RootFrame::CheckFocus(BlockView& block_view) {
 	if (caret_focus == &block_view) { caret_focus = nullptr; }
 	if (selection_focus == &block_view) { selection_focus = nullptr; }
 	if (drag_drop_focus == &block_view) { drag_drop_focus = nullptr; }
 }
 
-void RootFrame::SetCaretFocus(Block& block_view) {
+void RootFrame::SetCaretFocus(BlockView& block_view) {
 	if (caret_focus == &block_view) { return; }
 	ClearCaret(); ClearSelection();
 	caret_focus = &block_view;
 }
 
 void RootFrame::SetCaret(Point point) {
-	GetChildBlock().SetCaret(ConvertToChildPoint(point));
+	GetChildView().SetCaret(ConvertToChildPoint(point));
 }
 
 void RootFrame::ClearCaret() {
 	if (caret_focus) { caret_focus->ClearCaret(); caret_focus = nullptr; }
 }
 
-void RootFrame::SetSelectionFocus(Block& block_view) {
+void RootFrame::SetSelectionFocus(BlockView& block_view) {
 	if (selection_focus == &block_view) { return; }
 	ClearCaret(); ClearSelection();
 	selection_focus = &block_view;
@@ -67,7 +71,7 @@ void RootFrame::BeginSelect() {
 }
 
 void RootFrame::DoSelect(Point point) {
-	GetChildBlock().DoSelect(ConvertToChildPoint(point));
+	GetChildView().DoSelect(ConvertToChildPoint(point));
 }
 
 void RootFrame::FinishSelect() {
@@ -86,14 +90,14 @@ void RootFrame::ClearSelection() {
 	if (selection_focus) { selection_focus->ClearSelection(); selection_focus = nullptr; }
 }
 
-void RootFrame::SetDragDropFocus(Block& block_view) {
+void RootFrame::SetDragDropFocus(BlockView& block_view) {
 	if (drag_drop_focus == &block_view) { return; }
 	CancelDragDrop();
 	drag_drop_focus = &block_view;
 }
 
 void RootFrame::DoDragDrop(Point point) {
-	GetChildBlock().DoDragDrop(*selection_focus, ConvertToChildPoint(point));
+	GetChildView().DoDragDrop(*selection_focus, ConvertToChildPoint(point));
 }
 
 void RootFrame::CancelDragDrop() {

@@ -18,13 +18,13 @@ struct Style : public TextView::Style {
 END_NAMESPACE(Anonymous)
 
 
-TextView::TextView(Block& parent, std::wstring text) : BlockView(parent), EditBox(Style(), text) {}
-
-PairView& TextView::GetParent() { return static_cast<PairView&>(Block::GetParent()); }
+TextView::TextView(BlockView& parent, std::wstring text) : BlockView(parent), EditBox(Style(), text) {}
 
 void TextView::Set(const value_type& value) { text = value; EditBox::OnTextUpdate(); }
 
 TextView::value_type TextView::Get() { return text; }
+
+PairView& TextView::GetParent() { return static_cast<PairView&>(BlockView::GetParent()); }
 
 void TextView::OnDraw(FigureQueue& figure_queue, Rect draw_region) {
 	EditBox::OnDraw(figure_queue, draw_region);
@@ -48,7 +48,7 @@ void TextView::SelectMore() {
 
 void TextView::RedrawDragDropCaretRegion() { Redraw(drag_drop_caret_region); }
 
-void TextView::DoDragDrop(Block& source, Point point) {
+void TextView::DoDragDrop(BlockView& source, Point point) {
 	if (dynamic_cast<TextView*>(&source) == nullptr) { return ClearDragDropFocus(); }
 	HitTestInfo info = text_block.HitTestPoint(point);
 	if (HasSelectionFocus() && selection_range.left() <= info.range.begin && info.range.begin <= selection_range.right()) {
@@ -66,7 +66,7 @@ void TextView::CancelDragDrop() {
 	RedrawDragDropCaretRegion(); drag_drop_caret_region = region_empty;
 }
 
-void TextView::FinishDragDrop(Block& source) {
+void TextView::FinishDragDrop(BlockView& source) {
 	TextView& text_view = static_cast<TextView&>(source);
 	if (&text_view == this) {
 		if (drag_drop_caret_position < selection_range.left()) {

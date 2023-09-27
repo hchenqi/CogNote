@@ -2,6 +2,7 @@
 
 #include "block.h"
 #include "local_data.h"
+#include "block_view.h"
 
 #include "WndDesign/layout/ListLayout.h"
 #include "WndDesign/figure/shape.h"
@@ -10,20 +11,14 @@
 class PairView;
 
 
-class ListView : public BlockView<std::vector<block_ref>>, public ListLayout<Vertical> {
+class ListView : public Block<std::vector<block_ref>>, public BlockView, public ListLayout<Vertical> {
 private:
 	using Base = ListLayout;
 
 public:
 	ListView(RootFrame& root) : BlockView(root), Base(gap) {}
-	ListView(Block& parent) : BlockView(parent), Base(gap) {}
-	ListView(Block& parent, list_data data) : ListView(parent) { if (!data.empty()) { InsertChild(0, data); } }
-
-	// context
-public:
-	Block::IsRoot;
-private:
-	PairView& GetParent();
+	ListView(BlockView& parent) : BlockView(parent), Base(gap) {}
+	ListView(BlockView& parent, list_data data) : ListView(parent) { if (!data.empty()) { InsertChild(0, data); } }
 
 	// data
 private:
@@ -32,6 +27,12 @@ private:
 public:
 	list_data GetLocalData(size_t begin, size_t length) const;
 	list_data GetLocalData() const { return GetLocalData(0, Length()); }
+
+	// parent
+public:
+	BlockView::IsRoot;
+private:
+	PairView& GetParent();
 
 	// style
 private:
@@ -76,9 +77,9 @@ private:
 	void UpdateSelectionRegion(size_t begin, size_t length);
 private:
 	virtual bool HitTestSelection(Point point) override;
-	virtual void BeginSelect(Block& child) override;
+	virtual void BeginSelect(BlockView& child) override;
 	virtual void DoSelect(Point point) override;
-	virtual void SelectChild(Block& child) override;
+	virtual void SelectChild(BlockView& child) override;
 	virtual void SelectMore() override;
 	virtual void ClearSelection() override;
 
@@ -93,11 +94,11 @@ private:
 	void RedrawDragDropCaretRegion();
 	void UpdateDragDropCaretRegion(size_t pos);
 public:
-	void DoDragDropBefore(Block& child) { UpdateDragDropCaretRegion(GetChildIndex(dynamic_cast<WndObject&>(child))); }
+	void DoDragDropBefore(BlockView& child) { UpdateDragDropCaretRegion(GetChildIndex(dynamic_cast<WndObject&>(child))); }
 private:
-	virtual void DoDragDrop(Block& source, Point point) override;
+	virtual void DoDragDrop(BlockView& source, Point point) override;
 	virtual void CancelDragDrop() override;
-	virtual void FinishDragDrop(Block& source) override;
+	virtual void FinishDragDrop(BlockView& source) override;
 
 	// route
 public:

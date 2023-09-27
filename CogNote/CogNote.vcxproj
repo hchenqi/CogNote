@@ -164,6 +164,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="view\block_view.cpp" />
     <ClCompile Include="view\ListView.cpp" />
     <ClCompile Include="view\local_data.cpp" />
     <ClCompile Include="view\PairView.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="view\RootFrame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="view\block_view.h" />
     <ClInclude Include="view\local_data.h" />
     <ClInclude Include="view\ListView.h" />
     <ClInclude Include="view\PairView.h" />
