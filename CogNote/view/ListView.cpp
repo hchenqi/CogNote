@@ -8,7 +8,7 @@ void ListView::Set(const value_type& value) {
 	std::vector<child_ptr> children; children.reserve(value.size());
 	for (auto& ref : value) {
 		alloc_ptr<PairView> child = new PairView(*this, {});
-		LoadChild(*child, ref);
+		LoadBlock(*child, ref);
 		children.emplace_back(std::move(child));
 	}
 	Base::EraseChild(0, Length());
@@ -18,7 +18,7 @@ void ListView::Set(const value_type& value) {
 ListView::value_type ListView::Get() { 
 	std::vector<block_ref> data; data.reserve(Length());
 	for (size_t index = 0; index < Length(); index++) {
-		data.push_back(GetChildRef(GetChild(index)));
+		data.push_back(GetBlockRef(GetChild(index)));
 	}
 	return data;
 }

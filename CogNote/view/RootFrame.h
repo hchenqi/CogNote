@@ -2,7 +2,12 @@
 
 #include "message/mouse_helper.h"
 
+#include "BlockStore/block_ref.h"
+
 #include "WndDesign/frame/ScrollFrame.h"
+
+
+using namespace BlockStore;
 
 
 class ListView;
@@ -11,11 +16,13 @@ class BlockView;
 
 class RootFrame : public ScrollFrame<Vertical> {
 public:
-	RootFrame();
+	RootFrame(block_ref& ref);
 	~RootFrame();
 
 	// data
 private:
+	block_ref& ref;
+public:
 	void Save();
 
 	// child

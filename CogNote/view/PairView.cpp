@@ -13,11 +13,11 @@ PairView::PairView(BlockView& parent, pair_data data) :
 }
 
 void PairView::Set(const value_type& value) {
-	LoadChild(*text_view, value.first); LoadChild(*list_view, value.second);
+	LoadBlock(*text_view, value.first); LoadBlock(*list_view, value.second);
 }
 
 PairView::value_type PairView::Get() {
-	return { GetChildRef(*text_view), GetChildRef(*list_view) };
+	return { GetBlockRef(*text_view), GetBlockRef(*list_view) };
 }
 
 pair_data PairView::GetLocalData() const { return { text_view->GetLocalData(), list_view->GetLocalData() }; }

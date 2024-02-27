@@ -4,28 +4,20 @@
 #include "block.h"
 #include "block_view.h"
 
-#include "BlockStore/block_manager.h"
-
 #include "WndDesign/frame/PaddingFrame.h"
 #include "WndDesign/message/ime.h"
 
 
-using BlockStore::block_manager;
-
-
-RootFrame::RootFrame() : ScrollFrame(new PaddingFrame(Padding(50, 30), child = new ListView(*this))) {
+RootFrame::RootFrame(block_ref& ref) : ScrollFrame(new PaddingFrame(Padding(0, 5), child = new ListView(*this))), ref(ref) {
 	cursor = Cursor::Text;
 	ime.Enable(*this);
-	block_manager.open_file("CogNote.db");
-	Block<>::LoadChild(GetChild(), block_manager.get_root());
+	Block<>::LoadBlock(GetChild(), ref);
 }
 
-RootFrame::~RootFrame() { Save(); block_manager.close_file(); }
+RootFrame::~RootFrame() { Save(); }
 
 void RootFrame::Save() {
-	Block<>::SaveAll();
-	block_manager.set_root(Block<>::GetChildRef(GetChild()));
-	block_manager.collect_garbage();
+	ref = Block<>::GetBlockRef(GetChild());
 	Redraw(region_infinite);
 }
 

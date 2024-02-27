@@ -39,6 +39,9 @@
     <ClCompile Include="view\block_view.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="view\TabView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="view\block.h">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="view\block_view.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="view\TabView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

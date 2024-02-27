@@ -1,7 +1,9 @@
-#include "view/RootFrame.h"
+#include "view/TabView.h"
 
 #include "WndDesign/window/Global.h"
 #include "WndDesign/widget/TitleBarFrame.h"
+
+#include "BlockStore/block_manager.h"
 
 
 struct MainFrameStyle : public TitleBarFrame::Style {
@@ -16,10 +18,19 @@ struct MainFrameStyle : public TitleBarFrame::Style {
 
 
 int main() {
+	//block_manager.open_file("CogNote.db");
+
+	//block_ref b = block_manager.get_root();
+	//block<std::wstring> text; text.write(L"words");
+	//block<std::vector<std::pair<block_ref, block_ref>>> root; root.write({ {text, b} });
+	//block_manager.set_root(root);
+
+	//return 0;
+
 	global.AddWnd(
 		new TitleBarFrame{
 			MainFrameStyle(),
-			new SolidColorBackground<RootFrame>
+			new TabView()
 		}
 	);
 	global.MessageLoop();
