@@ -18,6 +18,7 @@ RootFrame::~RootFrame() { Save(); }
 
 void RootFrame::Save() {
 	ref = Block<>::GetBlockRef(GetChild());
+	Block<>::SaveAll();
 	Redraw(region_infinite);
 }
 
